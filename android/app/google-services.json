@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "566400543574",
+    "project_id": "astute-contracts",
+    "storage_bucket": "astute-contracts.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:566400543574:android:fa75a0f20f3e4c6b59c4f7",
+        "android_client_info": {
+          "package_name": "com.example.astute"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOeGOHOQcwOuH2aYq8HXRSUqLBqYWhuUM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:566400543574:android:1ffeab354eb7b0ae59c4f7",
+        "android_client_info": {
+          "package_name": "com.example.astute_contracts"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOeGOHOQcwOuH2aYq8HXRSUqLBqYWhuUM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
