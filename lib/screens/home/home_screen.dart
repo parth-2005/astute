@@ -127,7 +127,7 @@ class HomeScreen extends StatelessWidget {
                         const Icon(Icons.search),
                         const SizedBox(width: 8),
                         Text(
-                          'Search markets',
+                          'Search contracts',
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppTheme.textSecondary,
                           ),
@@ -188,6 +188,7 @@ class HomeScreen extends StatelessWidget {
             'Business',
             Icons.business,
             AppTheme.primaryColor,
+            AppRouter.marketList1,
           ),
           const SizedBox(width: 16),
           _buildCategoryCard(
@@ -195,6 +196,7 @@ class HomeScreen extends StatelessWidget {
             'Investments',
             Icons.trending_up,
             AppTheme.primaryColor,
+            AppRouter.marketList2,
           ),
           const SizedBox(width: 16),
           _buildCategoryCard(
@@ -202,6 +204,7 @@ class HomeScreen extends StatelessWidget {
             'IPO',
             Icons.monetization_on,
             AppTheme.primaryColor,
+            AppRouter.marketList3,
           ),
         ],
       ),
@@ -213,13 +216,14 @@ class HomeScreen extends StatelessWidget {
     String title,
     IconData icon,
     Color color,
+    String route,
   ) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     
     return InkWell(
       onTap: () {
         // Navigate to category-specific markets
-        Navigator.pushNamed(context, AppRouter.marketList);
+        Navigator.pushNamed(context, route); // Replace with proper category routes
       },
       child: Container(
         width: 110,
@@ -329,7 +333,7 @@ class HomeScreen extends StatelessWidget {
     return InkWell(
       onTap: () {
         // Navigate to specific learning content
-        Navigator.pushNamed(context, AppRouter.marketList); // Replace with proper learning routes
+        Navigator.pushNamed(context, AppRouter.learningList); // Replace with proper learning routes
       },
       child: Container(
         padding: const EdgeInsets.all(16),

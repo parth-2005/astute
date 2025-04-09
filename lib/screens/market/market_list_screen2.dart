@@ -4,14 +4,14 @@ import '../../navigation/app_router.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/market_card.dart';
 
-class MarketListScreen extends StatefulWidget {
-  const MarketListScreen({super.key});
+class MarketListScreen2 extends StatefulWidget {
+  const MarketListScreen2({super.key});
 
   @override
-  State<MarketListScreen> createState() => _MarketListScreenState();
+  State<MarketListScreen2> createState() => _MarketListScreen2State();
 }
 
-class _MarketListScreenState extends State<MarketListScreen>
+class _MarketListScreen2State extends State<MarketListScreen2>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
@@ -133,7 +133,7 @@ class _MarketListScreenState extends State<MarketListScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Contracts'),
+        title: const Text('Markets'),
         actions: [
           IconButton(
             onPressed: () {},
@@ -148,7 +148,7 @@ class _MarketListScreenState extends State<MarketListScreen>
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search contracts',
+                hintText: 'Search markets',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -175,9 +175,9 @@ class _MarketListScreenState extends State<MarketListScreen>
             controller: _tabController,
             tabs: const [
               Tab(text: 'All'),
-              Tab(text: 'CAT 1'),
-              Tab(text: 'CAT 2'),
-              Tab(text: 'CAT 3'),
+              Tab(text: 'CAT 4'),
+              Tab(text: 'CAT 5'),
+              Tab(text: 'CAT 6'),
             ],
             labelColor: AppTheme.primaryColor,
             unselectedLabelColor: AppTheme.textSecondary,
@@ -214,7 +214,7 @@ class _MarketListScreenState extends State<MarketListScreen>
   Widget _buildMarketList(List<Market> markets) {
     if (markets.isEmpty) {
       return const Center(
-        child: Text('No contracts found'),
+        child: Text('No markets found'),
       );
     }
 

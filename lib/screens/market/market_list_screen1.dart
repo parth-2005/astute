@@ -4,14 +4,14 @@ import '../../navigation/app_router.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/market_card.dart';
 
-class MarketListScreen extends StatefulWidget {
-  const MarketListScreen({super.key});
+class MarketListScreen1 extends StatefulWidget {
+  const MarketListScreen1({super.key});
 
   @override
-  State<MarketListScreen> createState() => _MarketListScreenState();
+  State<MarketListScreen1> createState() => _MarketListScreen1State();
 }
 
-class _MarketListScreenState extends State<MarketListScreen>
+class _MarketListScreen1State extends State<MarketListScreen1>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();

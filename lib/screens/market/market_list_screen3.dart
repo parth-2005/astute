@@ -4,14 +4,14 @@ import '../../navigation/app_router.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/market_card.dart';
 
-class MarketListScreen extends StatefulWidget {
-  const MarketListScreen({super.key});
+class MarketListScreen3 extends StatefulWidget {
+  const MarketListScreen3({super.key});
 
   @override
-  State<MarketListScreen> createState() => _MarketListScreenState();
+  State<MarketListScreen3> createState() => _MarketListScreen3State();
 }
 
-class _MarketListScreenState extends State<MarketListScreen>
+class _MarketListScreen3State extends State<MarketListScreen3>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
@@ -175,9 +175,9 @@ class _MarketListScreenState extends State<MarketListScreen>
             controller: _tabController,
             tabs: const [
               Tab(text: 'All'),
-              Tab(text: 'CAT 1'),
-              Tab(text: 'CAT 2'),
-              Tab(text: 'CAT 3'),
+              Tab(text: 'CAT 7'),
+              Tab(text: 'CAT 8'),
+              Tab(text: 'CAT 9'),
             ],
             labelColor: AppTheme.primaryColor,
             unselectedLabelColor: AppTheme.textSecondary,
@@ -214,7 +214,7 @@ class _MarketListScreenState extends State<MarketListScreen>
   Widget _buildMarketList(List<Market> markets) {
     if (markets.isEmpty) {
       return const Center(
-        child: Text('No contracts found'),
+        child: Text('No markets found'),
       );
     }
 

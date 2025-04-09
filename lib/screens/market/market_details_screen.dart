@@ -104,7 +104,9 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
       text: '1',
     );
 
-    double totalAmount = 0.0;
+    double totalAmount = priceController.text.isNotEmpty
+        ? double.parse(priceController.text) * int.parse(quantityController.text)
+        : 0.0;
     
     showModalBottomSheet(
       context: context,
@@ -559,7 +561,7 @@ Widget _buildCurrentListings() {
               children: [
                 _tableCell('$totalLeft', isBold: true),
                 _tableCell(''),
-                _tableCell('Total Quantity',
+                _tableCell('Total',
                     isBold: true, align: TextAlign.center),
                 _tableCell('$totalRight', isBold: true),
               ],

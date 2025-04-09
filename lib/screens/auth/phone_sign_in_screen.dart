@@ -124,13 +124,12 @@ class _PhoneSignInScreenState extends State<PhoneSignInScreen> {
                   labelText: 'Phone Number',
                   hintText: 'Enter your phone number',
                   keyboardType: TextInputType.phone,
-                  prefixIcon: const Text('+91 '),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your phone number';
                     }
-                    if (value.length != 10) {
-                      return 'Please enter a valid 10-digit phone number';
+                    if (!RegExp(r'^\+?[0-9]{10,15}$').hasMatch(value)) {
+                      return 'Please enter a valid phone number';
                     }
                     return null;
                   },

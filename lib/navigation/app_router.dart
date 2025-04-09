@@ -1,3 +1,7 @@
+import 'package:astute/screens/learning/learning_list_screen.dart';
+import 'package:astute/screens/market/market_list_screen1.dart';
+import 'package:astute/screens/market/market_list_screen2.dart';
+import 'package:astute/screens/market/market_list_screen3.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import '../screens/auth/forgot_password_screen.dart';
@@ -24,6 +28,10 @@ class AppRouter {
   static const String completeProfile = '/complete-profile';
   static const String home = '/';
   static const String marketList = '/market-list';
+  static const String marketList1 = '/market-list1';
+  static const String marketList2 = '/market-list2';
+  static const String marketList3 = '/market-list3';
+  static const String learningList = '/learning-list';
   static const String marketDetails = '/market-details';
   static const String orders = '/orders';
   static const String wallet = '/wallet';
@@ -49,6 +57,14 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const BottomNavBar());
       case marketList:
         return MaterialPageRoute(builder: (_) => const MarketListScreen());
+      case marketList1:
+        return MaterialPageRoute(builder: (_) => const MarketListScreen1());
+      case marketList2:
+        return MaterialPageRoute(builder: (_) => const MarketListScreen2());
+      case marketList3:
+        return MaterialPageRoute(builder: (_) => const MarketListScreen3());
+      case learningList:
+        return MaterialPageRoute(builder: (_) => const LearningListScreen());
       case marketDetails:
         final String marketId = routeSettings.arguments as String;
         return MaterialPageRoute(
@@ -66,12 +82,13 @@ class AppRouter {
         return MaterialPageRoute(builder: (_) => const BottomNavBar());
       default:
         return MaterialPageRoute(
-          builder: (_) => Scaffold(
-            body: Center(
-              child: Text('No route defined for ${routeSettings.name}'),
-            ),
-          ),
+          builder:
+              (_) => Scaffold(
+                body: Center(
+                  child: Text('No route defined for ${routeSettings.name}'),
+                ),
+              ),
         );
     }
   }
-} 
+}
