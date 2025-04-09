@@ -145,6 +145,9 @@ class HomeScreen extends StatelessWidget {
               _buildSectionHeader(context, 'Trending Contracts'),
               const SizedBox(height: 16),
               _buildTrendingMarkets(context, trendingMarkets),
+              const SizedBox(height: 24),
+              _buildLearningSection(context),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -271,6 +274,114 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildLearningSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(context, 'Learning Center'),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Column(
+            children: [
+              _buildLearningItem(
+                context,
+                'Beginners',
+                'First step towards financial independence',
+                Icons.menu_book,
+              ),
+              const SizedBox(height: 16),
+              _buildLearningItem(
+                context,
+                'Investors',
+                'Learn the fundamentals of investing',
+                Icons.account_balance_wallet,
+              ),
+              const SizedBox(height: 16),
+              _buildLearningItem(
+                context,
+                'Traders',
+                'Learn technical fundamentals and strategies',
+                Icons.trending_up,
+              ),
+              const SizedBox(height: 16),
+              _buildLearningItem(
+                context,
+                'Explore App',
+                'Guided journey for basic trading',
+                Icons.explore,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLearningItem(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+  ) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    
+    return InkWell(
+      onTap: () {
+        // Navigate to specific learning content
+        Navigator.pushNamed(context, AppRouter.marketList); // Replace with proper learning routes
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDarkMode ? AppTheme.black.withOpacity(0.3) : AppTheme.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: AppTheme.primaryColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _getTimeOfDay() {
     final hour = DateTime.now().hour;
     if (hour < 12) {
@@ -281,4 +392,4 @@ class HomeScreen extends StatelessWidget {
       return 'Evening';
     }
   }
-} 
+}

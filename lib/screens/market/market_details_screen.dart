@@ -470,193 +470,173 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
       ],
     );
   }
+Widget _buildCurrentListings() {
+  // Mock data
+  final List<Map<String, dynamic>> listings = [
+    {'qtyLeft': 1, 'buy': 5.0, 'sell': 50.0, 'qtyRight': 1},
+    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
+    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
+    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
+    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
+  ];
 
-  Widget _buildCurrentListings() {
-    // Mock data for current listings
-    final List<Map<String, dynamic>> listings = [
-      {
-        'type': 'No',
-        'price': 4.0,
-        'quantity': 100,
-        'total': 400.0,
-        'time': '2 mins ago',
-      },
-      {
-        'type': 'No',
-        'price': 4.2,
-        'quantity': 50,
-        'total': 210.0,
-        'time': '5 mins ago',
-      },
-      {
-        'type': 'Yes',
-        'price': 5.8,
-        'quantity': 200,
-        'total': 1160.0,
-        'time': '10 mins ago',
-      },
-    ];
+  // Find max for normalization
+  final double maxQty = listings
+      .map((e) => (e['qtyLeft'] as int).toDouble())
+      .reduce((a, b) => a > b ? a : b);
 
-    // Find the max quantity for scaling the bars
-    final maxQuantity = listings.fold<int>(0, (max, listing) => 
-      listing['quantity'] > max ? listing['quantity'] : max);
+  final int totalLeft =
+      listings.fold(0, (sum, e) => sum + (e['qtyLeft'] as int));
+  final int totalRight =
+      listings.fold(0, (sum, e) => sum + (e['qtyRight'] as int));
 
-    return Column(
+  return Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.grey.shade300),
+    ),
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Current Listings',
-          style: Theme.of(context).textTheme.titleMedium,
+        // Top stats
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _statItem('OPEN', 248.00),
+            _statItem('HIGH', 251.45),
+            _statItem('LOW', 241.65),
+            _statItem('PREV. CLOSE', 241.50),
+          ],
         ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppTheme.dividerColor),
-          ),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Type',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Text(
-                        'Price',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: Text(
-                        'Volume',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              ...listings.map((listing) {
-                final barWidth = (listing['quantity'] / maxQuantity) * 0.8;
-                final isYes = listing['type'] == 'Yes';
-                final barColor = isYes ? AppTheme.positiveColor : AppTheme.negativeColor;
-                
-                return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 1,
-                            child: Text(
-                              listing['type'],
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: barColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: Text(
-                              '₹${listing['price'].toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                          ),
-                          Expanded(
-                            flex: 4,
-                            child: Stack(
-                              children: [
-                                Container(
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.dividerColor,
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                ),
-                                FractionallySizedBox(
-                                  widthFactor: barWidth,
-                                  child: Container(
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: barColor.withOpacity(0.7),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                  ),
-                                ),
-                                Positioned.fill(
-                                  child: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(left: 8.0),
-                                      child: Text(
-                                        '${listing['quantity']} units · ₹${listing['total'].toStringAsFixed(0)}',
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Text(
-                            listing['time'],
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppTheme.textSecondary,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              // TODO: Implement trade with this listing
-                            },
-                            icon: const Icon(Icons.handshake, size: 16),
-                            label: const Text('Trade'),
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              textStyle: const TextStyle(fontSize: 12),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+        const Divider(height: 24),
+
+        const Text('Tap to select price',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+
+        // Order book table
+        Table(
+          columnWidths: const {
+            0: FlexColumnWidth(1),
+            1: FlexColumnWidth(1),
+            2: FlexColumnWidth(1),
+            3: FlexColumnWidth(1),
+          },
+          children: [
+            // Header
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade100),
+              children: [
+                _tableCell('QTY', isHeader: true),
+                _tableCell('YES', isHeader: true),
+                _tableCell('NO', isHeader: true),
+                _tableCell('QTY', isHeader: true),
+              ],
+            ),
+            // Data rows
+            for (var row in listings)
+              TableRow(
+                children: [
+                  _tableCell('${row['qtyLeft']}'),
+                  _barCell(
+                    '₹${row['buy'].toStringAsFixed(2)}',
+                    (row['qtyLeft'] as int) / maxQty,
+                    Colors.green,
                   ),
-                );
-              }).toList(),
-            ],
+                  _barCell(
+                    '₹${row['sell'].toStringAsFixed(2)}',
+                    (row['qtyRight'] as int) / maxQty,
+                    Colors.red,
+                  ),
+                  _tableCell('${row['qtyRight']}'),
+                ],
+              ),
+            // Total row
+            TableRow(
+              decoration: BoxDecoration(color: Colors.grey.shade100),
+              children: [
+                _tableCell('$totalLeft', isBold: true),
+                _tableCell(''),
+                _tableCell('Total Quantity',
+                    isBold: true, align: TextAlign.center),
+                _tableCell('$totalRight', isBold: true),
+              ],
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+// ----------------------
+// Helpers below:
+
+Widget _statItem(String label, double value) {
+  return Column(
+    children: [
+      Text(label,
+          style: const TextStyle(fontSize: 12, color: Colors.grey)),
+      const SizedBox(height: 4),
+      Text(value.toStringAsFixed(2),
+          style: const TextStyle(fontWeight: FontWeight.bold)),
+    ],
+  );
+}
+
+Widget _tableCell(String text,
+    {bool isHeader = false,
+    bool isBold = false,
+    TextAlign align = TextAlign.left}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+    child: Text(
+      text,
+      textAlign: align,
+      style: TextStyle(
+        fontSize: isHeader ? 12 : 14,
+        fontWeight: isHeader || isBold ? FontWeight.bold : FontWeight.normal,
+        color: isHeader ? Colors.grey.shade600 : Colors.black,
+      ),
+    ),
+  );
+}
+
+Widget _barCell(String label, double fraction, Color color) {
+  // fraction: 0.0 to 1.0
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+    child: Stack(
+      children: [
+        // Background bar
+        FractionallySizedBox(
+          widthFactor: fraction.clamp(0.0, 1.0),
+          child: Container(
+            height: 28,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        ),
+        // Overlay text
+        Container(
+          height: 28,
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 }
 
 // Helper function to add some realistic-looking variation for mock data
