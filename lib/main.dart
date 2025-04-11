@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
-            home: const InitialRoute(),
+            home: const SplashScreen(),
             onGenerateRoute: AppRouter.generateRoute,
           );
         },
@@ -46,51 +46,92 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class InitialRoute extends StatefulWidget {
-  const InitialRoute({super.key});
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<InitialRoute> createState() => _InitialRouteState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _InitialRouteState extends State<InitialRoute> {
-  bool _isLoading = true;
-  bool _hasSeenOnboarding = false;
-
+class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkOnboardingStatus();
+    _initializeApp();
   }
 
-  Future<void> _checkOnboardingStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
-      _isLoading = false;
-    });
+  Future<void> _initializeApp() async {
+    print('SplashScreen: Starting initialization...');
+
+    // Check onboarding status
+    bool hasSeenOnboarding = false;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
+      print('SplashScreen: hasSeenOnboarding = $hasSeenOnboarding');
+    } catch (e) {
+      print('SplashScreen: Error reading SharedPreferences: $e');
+    }
+
+    // Wait for Firebase auth state to stabilize
+    auth.User? user;
+    try {
+      user = auth.FirebaseAuth.instance.currentUser;
+      print('SplashScreen: Current user = ${user?.uid ?? "null"}');
+      if (user == null) {
+        // Wait briefly for auth state to update
+        await auth.FirebaseAuth.instance.authStateChanges().first.timeout(
+          const Duration(seconds: 1),
+          onTimeout: () => null,
+        );
+        user = auth.FirebaseAuth.instance.currentUser;
+        print('SplashScreen: After waiting, user = ${user?.uid ?? "null"}');
+      }
+    } catch (e) {
+      print('SplashScreen: Error checking auth state: $e');
+    }
+
+    // Ensure splash screen is shown for at least 2 seconds
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Navigate based on user state and onboarding status
+    Widget nextScreen;
+    if (user != null) {
+      print('SplashScreen: User logged in, navigating to BottomNavBar');
+      nextScreen = const BottomNavBar();
+    } else if (!hasSeenOnboarding) {
+      print('SplashScreen: Onboarding not seen, navigating to OnboardingScreen');
+      nextScreen = const OnboardingScreen();
+    } else {
+      print('SplashScreen: Navigating to LoginScreen');
+      nextScreen = const LoginScreen();
+    }
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => nextScreen),
+      );
+    } else {
+      print('SplashScreen: Widget not mounted, skipping navigation');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset('assets/icons/app_icon.png'),
+            ],
+          ),
         ),
-      );
-    }
-
-    final user = Provider.of<auth.User?>(context);
-    
-    if (user != null) {
-      return const BottomNavBar();
-    }
-
-    if (!_hasSeenOnboarding) {
-      return const OnboardingScreen();
-    }
-
-    return const LoginScreen();
+      ),
+    );
   }
 }
