@@ -72,19 +72,21 @@ class HomeScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        Text(
-                          'Good ${_getTimeOfDay()}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppTheme.textSecondary,
-                          ),
+                        Image.asset(
+                          'assets/icons/primary_icon0.png',
+                          height: 30,
+                          width: 30,
+                          fit: BoxFit.cover,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(width: 8),
                         Text(
-                          'Welcome back!',
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          "Astute",
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: AppTheme.black,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),

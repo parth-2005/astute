@@ -41,16 +41,12 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildProfileHeader(BuildContext context, UserProfile user) {
     final isPositivePL = user.profitLoss > 0;
-    final plColor = isPositivePL ? AppTheme.positiveColor : AppTheme.negativeColor;
-    
+    final plColor =
+        isPositivePL ? AppTheme.positiveColor : AppTheme.negativeColor;
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 24.0,
-        vertical: 40.0,
-      ),
-      decoration: const BoxDecoration(
-        color: AppTheme.primaryColor,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+      decoration: const BoxDecoration(color: AppTheme.primaryColor),
       child: SafeArea(
         child: Column(
           children: [
@@ -67,17 +63,19 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       Text(
                         user.name,
-                        style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                              color: AppTheme.white,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.displayMedium?.copyWith(
+                          color: AppTheme.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         user.email,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: AppTheme.white.withOpacity(0.8),
-                            ),
+                          color: AppTheme.white.withOpacity(0.8),
+                        ),
                       ),
                     ],
                   ),
@@ -123,16 +121,16 @@ class ProfileScreen extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppTheme.white.withOpacity(0.8),
-              ),
+            color: AppTheme.white.withOpacity(0.8),
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: valueColor ?? AppTheme.white,
-                fontWeight: FontWeight.bold,
-              ),
+            color: valueColor ?? AppTheme.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -140,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildMenuItems(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+
     return Column(
       children: [
         _buildMenuItem(
@@ -184,45 +182,30 @@ class ProfileScreen extends StatelessWidget {
             // Navigate to support
           },
         ),
-        const SizedBox(height: 32),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: ElevatedButton(
-            onPressed: () async{
-              // Handle sign out
-                // Clear user data in the app
-                await Future.wait([
+        _buildMenuItem(
+          context,
+          icon: Icons.logout,
+          title: 'Sign Out',
+          onTap: () async {
+              await Future.wait([
                 auth.FirebaseAuth.instance.signOut(),
                 GoogleSignIn().signOut(),
                 SharedPreferences.getInstance().then((prefs) => prefs.clear()),
-                ]);
-                // Navigate to the login screen and clear the navigation stack
-                Navigator.pushNamedAndRemoveUntil(
+              ]);
+              // Navigate to the login screen and clear the navigation stack
+              Navigator.pushNamedAndRemoveUntil(
                 context,
                 AppRouter.login,
                 (Route<dynamic> route) => false,
-                );
-                // Show a success message
-                ScaffoldMessenger.of(context).showSnackBar(
+              );
+              // Show a success message
+              ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                content: Text('Successfully signed out.'),
-                duration: Duration(seconds: 2),
+                  content: Text('Successfully signed out.'),
+                  duration: Duration(seconds: 2),
                 ),
-                );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.negativeColor,
-              foregroundColor: AppTheme.white,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.logout),
-                const SizedBox(width: 8),
-                const Text('Sign Out'),
-              ],
-            ),
-          ),
+              );
+          },
         ),
       ],
     );
@@ -235,17 +218,17 @@ class ProfileScreen extends StatelessWidget {
     required Function() onTap,
   }) {
     return ListTile(
-      leading: Icon(
-        icon,
-        color: AppTheme.primaryColor,
-      ),
+      leading: Icon(icon, color: AppTheme.primaryColor),
       title: Text(title),
       trailing: const Icon(Icons.chevron_right),
       onTap: onTap,
     );
   }
 
-  Widget _buildThemeMenuItem(BuildContext context, ThemeProvider themeProvider) {
+  Widget _buildThemeMenuItem(
+    BuildContext context,
+    ThemeProvider themeProvider,
+  ) {
     return ListTile(
       leading: Icon(
         themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
@@ -260,4 +243,4 @@ class ProfileScreen extends StatelessWidget {
       onTap: () => themeProvider.toggleTheme(),
     );
   }
-} 
+}
