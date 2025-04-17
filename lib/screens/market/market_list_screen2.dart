@@ -20,49 +20,64 @@ class _MarketListScreen2State extends State<MarketListScreen2>
   // Mock market data (in a real app, you'd fetch this from an API)
   final List<Market> _allMarkets = [
     Market(
-      id: '1',
-      name: 'Will RVNL close above ₹350.30 on April 8th, 2024?',
-      description: 'This market will resolve to "Yes" if RVNL stock closes above ₹350.30 on April 8th, 2024.',
-      category: 'Stocks',
-      resolutionTime: DateTime(2024, 4, 8, 15, 30),
-      yesPrice: 0.65,
-      noPrice: 0.35,
-      liquidity: 50000,
-      volume: 56390,
-    ),
-    Market(
-      id: '2',
-      name: 'Will BJP win more than 300 seats in 2024 Lok Sabha elections?',
-      description: 'This market will resolve to "Yes" if BJP wins more than 300 seats in the 2024 Lok Sabha elections.',
-      category: 'Politics',
-      resolutionTime: DateTime(2024, 6, 4, 17, 0),
-      yesPrice: 0.72,
-      noPrice: 0.28,
-      liquidity: 100000,
-      volume: 75000,
-    ),
-    Market(
-      id: '3',
-      name: 'Will India win more than 70 medals in 2024 Olympics?',
-      description: 'This market will resolve to "Yes" if India wins more than 70 medals in the 2024 Olympics.',
-      category: 'Sports',
-      resolutionTime: DateTime(2024, 8, 11, 23, 59),
-      yesPrice: 0.45,
-      noPrice: 0.55,
-      liquidity: 75000,
-      volume: 45000,
-    ),
-    Market(
-      id: '4',
-      name: 'Will RBI increase repo rate in April 2024?',
-      description: 'This market will resolve to "Yes" if RBI increases the repo rate in its April 2024 monetary policy meeting.',
-      category: 'Economy',
-      resolutionTime: DateTime(2024, 4, 5, 10, 0),
-      yesPrice: 0.38,
-      noPrice: 0.62,
-      liquidity: 80000,
-      volume: 35000,
-    ),
+  id: 'inv_001',
+  name: 'Will Bitcoin cross \$100,000 by December 2025?',
+  description: 'Speculations rise as Bitcoin gains momentum. Will it hit the \$100K mark this year?',
+  category: 'CAT4',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.41,
+  noPrice: 0.59,
+  liquidity: 15000,
+  volume: 13800,
+),
+
+Market(
+  id: 'inv_002',
+  name: 'Will the S&P 500 end 2025 above 5500?',
+  description: 'Investors watch the index closely amid market volatility.',
+  category: 'CAT4',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.48,
+  noPrice: 0.52,
+  liquidity: 13000,
+  volume: 11500,
+),
+
+Market(
+  id: 'inv_003',
+  name: 'Will gold cross \$2500/oz in 2025?',
+  description: 'Inflation and global tension could drive gold prices up. Will it happen?',
+  category: 'CAT4',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.53,
+  noPrice: 0.47,
+  liquidity: 7000,
+  volume: 6400,
+),
+
+Market(
+  id: 'inv_004',
+  name: 'Will Berkshire Hathaway outperform the S&P 500 in 2025?',
+  description: 'Berkshire’s value investing strategy is in question. Will it beat the index?',
+  category: 'CAT5',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.44,
+  noPrice: 0.56,
+  liquidity: 6000,
+  volume: 5200,
+),
+
+Market(
+  id: 'inv_005',
+  name: 'Will Indian Mutual Fund AUM exceed ₹60L crore by year-end?',
+  description: 'With increasing SIPs and retail interest, will mutual fund assets grow to this level?',
+  category: 'CAT6',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.58,
+  noPrice: 0.42,
+  liquidity: 9500,
+  volume: 8100,
+),
   ];
 
   List<Market> _filteredMarkets = [];
@@ -133,7 +148,7 @@ class _MarketListScreen2State extends State<MarketListScreen2>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Markets'),
+        title: const Text('Contracts'),
         actions: [
           IconButton(
             onPressed: () {},
@@ -148,7 +163,7 @@ class _MarketListScreen2State extends State<MarketListScreen2>
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search markets',
+                hintText: 'Search contracts',
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -195,13 +210,13 @@ class _MarketListScreen2State extends State<MarketListScreen2>
               children: [
                 _buildMarketList(_filteredMarkets),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Stocks')
+                    .where((market) => market.category == 'CAT4')
                     .toList()),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Politics')
+                    .where((market) => market.category == 'CAT5')
                     .toList()),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Sports')
+                    .where((market) => market.category == 'CAT6')
                     .toList()),
               ],
             ),

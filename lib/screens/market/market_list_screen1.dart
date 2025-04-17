@@ -20,49 +20,64 @@ class _MarketListScreen1State extends State<MarketListScreen1>
   // Mock market data (in a real app, you'd fetch this from an API)
   final List<Market> _allMarkets = [
     Market(
-      id: '1',
-      name: 'Will RVNL close above ₹350.30 on April 8th, 2024?',
-      description: 'This market will resolve to "Yes" if RVNL stock closes above ₹350.30 on April 8th, 2024.',
-      category: 'Stocks',
-      resolutionTime: DateTime(2024, 4, 8, 15, 30),
-      yesPrice: 0.65,
-      noPrice: 0.35,
-      liquidity: 50000,
-      volume: 56390,
-    ),
-    Market(
-      id: '2',
-      name: 'Will BJP win more than 300 seats in 2024 Lok Sabha elections?',
-      description: 'This market will resolve to "Yes" if BJP wins more than 300 seats in the 2024 Lok Sabha elections.',
-      category: 'Politics',
-      resolutionTime: DateTime(2024, 6, 4, 17, 0),
-      yesPrice: 0.72,
-      noPrice: 0.28,
-      liquidity: 100000,
-      volume: 75000,
-    ),
-    Market(
-      id: '3',
-      name: 'Will India win more than 70 medals in 2024 Olympics?',
-      description: 'This market will resolve to "Yes" if India wins more than 70 medals in the 2024 Olympics.',
-      category: 'Sports',
-      resolutionTime: DateTime(2024, 8, 11, 23, 59),
-      yesPrice: 0.45,
-      noPrice: 0.55,
-      liquidity: 75000,
-      volume: 45000,
-    ),
-    Market(
-      id: '4',
-      name: 'Will RBI increase repo rate in April 2024?',
-      description: 'This market will resolve to "Yes" if RBI increases the repo rate in its April 2024 monetary policy meeting.',
-      category: 'Economy',
-      resolutionTime: DateTime(2024, 4, 5, 10, 0),
-      yesPrice: 0.38,
-      noPrice: 0.62,
-      liquidity: 80000,
-      volume: 35000,
-    ),
+  id: 'biz_001',
+  name: 'Will Tesla report a profit in Q2 2025?',
+  description: 'Tesla is scheduled to release its Q2 earnings. Will the company post a net profit?',
+  category: 'CAT1',
+  resolutionTime: DateTime(2025, 7, 30),
+  yesPrice: 0.62,
+  noPrice: 0.38,
+  liquidity: 10000,
+  volume: 8500,
+),
+
+Market(
+  id: 'biz_002',
+  name: 'Will Apple launch a new MacBook model by September 2025?',
+  description: 'Apple typically hosts its product event in September. Will it announce a new MacBook?',
+  category: 'CAT1',
+  resolutionTime: DateTime(2025, 9, 15),
+  yesPrice: 0.57,
+  noPrice: 0.43,
+  liquidity: 8000,
+  volume: 6700,
+),
+
+Market(
+  id: 'biz_003',
+  name: 'Will Google face an antitrust fine in 2025?',
+  description: 'With regulatory pressure increasing, will Google receive a major fine this year?',
+  category: 'CAT2',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.46,
+  noPrice: 0.54,
+  liquidity: 12000,
+  volume: 10450,
+),
+
+Market(
+  id: 'biz_004',
+  name: 'Will OpenAI raise a new funding round in 2025?',
+  description: 'Rumors suggest OpenAI may seek new capital. Will it happen this year?',
+  category: 'CAT3',
+  resolutionTime: DateTime(2025, 11, 1),
+  yesPrice: 0.51,
+  noPrice: 0.49,
+  liquidity: 9000,
+  volume: 7200,
+),
+
+Market(
+  id: 'biz_005',
+  name: 'Will Reliance acquire any startup in 2025?',
+  description: 'Reliance has been actively acquiring startups. Will it make a new acquisition this year?',
+  category: 'CAT3',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.64,
+  noPrice: 0.36,
+  liquidity: 9500,
+  volume: 7900,
+),
   ];
 
   List<Market> _filteredMarkets = [];
@@ -195,13 +210,13 @@ class _MarketListScreen1State extends State<MarketListScreen1>
               children: [
                 _buildMarketList(_filteredMarkets),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Stocks')
+                    .where((market) => market.category == 'CAT1')
                     .toList()),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Politics')
+                    .where((market) => market.category == 'CAT2')
                     .toList()),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Sports')
+                    .where((market) => market.category == 'CAT3')
                     .toList()),
               ],
             ),

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/learning.dart';
 import '../theme/app_theme.dart';
 
-class LearningCard extends StatelessWidget {
+class NotificationsCard extends StatelessWidget {
   final Learning learning;
   final Function()? onTap;
 
-  const LearningCard({
+  const NotificationsCard({
     super.key,
     required this.learning,
     this.onTap,
@@ -33,25 +33,6 @@ class LearningCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                learning.image,
-                height: 150,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 150,
-                  width: double.infinity,
-                  color: Colors.grey[300],
-                  alignment: Alignment.center,
-                  child: Icon(Icons.broken_image, color: Colors.grey[700]),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            
             // Name
             Text(
               learning.name,

@@ -20,49 +20,64 @@ class _MarketListScreen3State extends State<MarketListScreen3>
   // Mock market data (in a real app, you'd fetch this from an API)
   final List<Market> _allMarkets = [
     Market(
-      id: '1',
-      name: 'Will RVNL close above ₹350.30 on April 8th, 2024?',
-      description: 'This market will resolve to "Yes" if RVNL stock closes above ₹350.30 on April 8th, 2024.',
-      category: 'Stocks',
-      resolutionTime: DateTime(2024, 4, 8, 15, 30),
-      yesPrice: 0.65,
-      noPrice: 0.35,
-      liquidity: 50000,
-      volume: 56390,
-    ),
-    Market(
-      id: '2',
-      name: 'Will BJP win more than 300 seats in 2024 Lok Sabha elections?',
-      description: 'This market will resolve to "Yes" if BJP wins more than 300 seats in the 2024 Lok Sabha elections.',
-      category: 'Politics',
-      resolutionTime: DateTime(2024, 6, 4, 17, 0),
-      yesPrice: 0.72,
-      noPrice: 0.28,
-      liquidity: 100000,
-      volume: 75000,
-    ),
-    Market(
-      id: '3',
-      name: 'Will India win more than 70 medals in 2024 Olympics?',
-      description: 'This market will resolve to "Yes" if India wins more than 70 medals in the 2024 Olympics.',
-      category: 'Sports',
-      resolutionTime: DateTime(2024, 8, 11, 23, 59),
-      yesPrice: 0.45,
-      noPrice: 0.55,
-      liquidity: 75000,
-      volume: 45000,
-    ),
-    Market(
-      id: '4',
-      name: 'Will RBI increase repo rate in April 2024?',
-      description: 'This market will resolve to "Yes" if RBI increases the repo rate in its April 2024 monetary policy meeting.',
-      category: 'Economy',
-      resolutionTime: DateTime(2024, 4, 5, 10, 0),
-      yesPrice: 0.38,
-      noPrice: 0.62,
-      liquidity: 80000,
-      volume: 35000,
-    ),
+  id: 'ipo_001',
+  name: 'Will Ola Electric go public in 2025?',
+  description: 'After regulatory filings and buzz, will Ola Electric launch its IPO this year?',
+  category: 'CAT9',
+  resolutionTime: DateTime(2025, 12, 31),
+  yesPrice: 0.61,
+  noPrice: 0.39,
+  liquidity: 10000,
+  volume: 8700,
+),
+
+Market(
+  id: 'ipo_002',
+  name: 'Will SpaceX IPO happen before Q3 2025?',
+  description: 'Elon Musk has hinted at an IPO. Will SpaceX take the leap before September?',
+  category: 'CAT9',
+  resolutionTime: DateTime(2025, 9, 30),
+  yesPrice: 0.29,
+  noPrice: 0.71,
+  liquidity: 8500,
+  volume: 7600,
+),
+
+Market(
+  id: 'ipo_003',
+  name: 'Will Swiggy’s IPO be oversubscribed on Day 1?',
+  description: 'Swiggy is expected to go public. Will the demand exceed supply on the first day?',
+  category: 'CAT9',
+  resolutionTime: DateTime(2025, 10, 15),
+  yesPrice: 0.67,
+  noPrice: 0.33,
+  liquidity: 11000,
+  volume: 9200,
+),
+
+Market(
+  id: 'ipo_004',
+  name: 'Will Reddit IPO before August 2025?',
+  description: 'Will the social platform Reddit go public before August this year?',
+  category: 'CAT8',
+  resolutionTime: DateTime(2025, 8, 1),
+  yesPrice: 0.42,
+  noPrice: 0.58,
+  liquidity: 6000,
+  volume: 5300,
+),
+
+Market(
+  id: 'ipo_005',
+  name: 'Will Zepto IPO at a valuation above \$3B?',
+  description: 'Zepto, the 10-minute delivery unicorn, is expected to IPO. Will its valuation exceed \$3 billion?',
+  category: 'CAT7',
+  resolutionTime: DateTime(2025, 11, 30),
+  yesPrice: 0.55,
+  noPrice: 0.45,
+  liquidity: 7000,
+  volume: 6100,
+),
   ];
 
   List<Market> _filteredMarkets = [];
@@ -195,13 +210,13 @@ class _MarketListScreen3State extends State<MarketListScreen3>
               children: [
                 _buildMarketList(_filteredMarkets),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Stocks')
+                    .where((market) => market.category == 'CAT7')
                     .toList()),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Politics')
+                    .where((market) => market.category == 'CAT8')
                     .toList()),
                 _buildMarketList(_filteredMarkets
-                    .where((market) => market.category == 'Sports')
+                    .where((market) => market.category == 'CAT9')
                     .toList()),
               ],
             ),

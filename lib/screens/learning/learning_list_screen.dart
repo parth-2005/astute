@@ -24,17 +24,17 @@ class _LearningListScreenState extends State<LearningListScreen>
   final List<Learning> _allMarkets = [
     Learning(
       name: "Get Started",
-      image: "",
+      image: "assets/images/learning.avif",
       description: "Get started with Astute",
     ),
     Learning(
       name: "Get Started",
-      image: "",
+      image: "assets/images/learning.avif",
       description: "Get started with Astute",
     ),
     Learning(
       name: "Get Started",
-      image: "",
+      image: "assets/images/learning.avif",
       description: "Get started with Astute",
     ),
   ];
@@ -60,10 +60,6 @@ class _LearningListScreenState extends State<LearningListScreen>
     });
   }
 
-  void _navigateToMarketDetails(String marketId) {
-    Navigator.pushNamed(context, AppRouter.marketDetails, arguments: marketId);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -85,15 +81,14 @@ class _LearningListScreenState extends State<LearningListScreen>
               decoration: InputDecoration(
                 hintText: 'Search Topics',
                 prefixIcon: const Icon(Icons.search),
-                suffixIcon:
-                    _searchQuery.isNotEmpty
-                        ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                          },
-                        )
-                        : null,
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
                 filled: true,
                 fillColor: Theme.of(context).inputDecorationTheme.fillColor,
                 border: OutlineInputBorder(
@@ -113,13 +108,13 @@ class _LearningListScreenState extends State<LearningListScreen>
       ),
     );
   }
-Widget _buildMarketList(List<Learning> markets) {
-  if (markets.isEmpty) {
-    return const Center(child: Text('No markets found'));
-  }
 
-  return Expanded(
-    child: Column(
+  Widget _buildMarketList(List<Learning> markets) {
+    if (markets.isEmpty) {
+      return const Center(child: Text('No markets found'));
+    }
+
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
@@ -130,7 +125,7 @@ Widget _buildMarketList(List<Learning> markets) {
           ),
         ),
         const SizedBox(height: 8),
-        Expanded( // This is key!
+        Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: markets.length,
@@ -141,8 +136,7 @@ Widget _buildMarketList(List<Learning> markets) {
                 learning: market,
                 onTap: () async {
                   await launchUrl(
-                    Uri.parse(
-                        'https://youtube.com/shorts/i9Kl2KbdLLI?si=60HRLi1i--fw259y'),
+                    Uri.parse('https://youtu.be/xiYR3DVytgI'),
                     mode: LaunchMode.externalApplication,
                   );
                 },
@@ -151,8 +145,6 @@ Widget _buildMarketList(List<Learning> markets) {
           ),
         ),
       ],
-    ),
-  );
-}
-
+    );
+  }
 }
