@@ -46,40 +46,33 @@ class FirestoreService {
   }
 
   Stream<List<Order>> getPendingOrders() {
-    final currentUser = _auth.currentUser;
-    if (currentUser == null) {
-      return Stream.value(<Order>[]);
-    }
+    // Return a stream that reacts to auth state. When user changes, we switch to the
+    // appropriate orders query stream. This ensures UI updates when auth becomes available.
+    return _auth.authStateChanges().asyncExpand((user) {
+      if (user == null) {
+        return Stream.value(<Order>[]);
+      }
 
-    return _db
-        .collection('orders')
-        .where('userId', isEqualTo: currentUser.uid)
-        .where('status', isEqualTo: 'pending')
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snap) {
-      return snap.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        final map = Map<String, dynamic>.from(data);
-        map['id'] = doc.id;
-        // align keys with Order.fromJson expectations
-        if (map.containsKey('createdAt')) {
-          map['created_at'] = map['createdAt'];
-        }
-        if (map.containsKey('executedAt')) {
-          map['executed_at'] = map['executedAt'];
-        }
-        if (map.containsKey('marketName')) {
-          map['market_name'] = map['marketName'];
-        }
-        if (map.containsKey('marketId')) {
-          map['market_id'] = map['marketId'];
-        }
-        if (map.containsKey('executedPrice')) {
-          map['executed_price'] = map['executedPrice'];
-        }
-        return Order.fromJson(map);
-      }).toList();
+      return _db
+          .collection('orders')
+          .where('userId', isEqualTo: user.uid)
+          .where('status', isEqualTo: 'pending')
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snap) {
+        return snap.docs.map((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final map = Map<String, dynamic>.from(data);
+          map['id'] = doc.id;
+          // align keys with Order.fromJson expectations (support camelCase or snake_case)
+          if (map.containsKey('createdAt')) map['created_at'] = map['createdAt'];
+          if (map.containsKey('executedAt')) map['executed_at'] = map['executedAt'];
+          if (map.containsKey('marketName')) map['market_name'] = map['marketName'];
+          if (map.containsKey('marketId')) map['market_id'] = map['marketId'];
+          if (map.containsKey('executedPrice')) map['executed_price'] = map['executedPrice'];
+          return Order.fromJson(map);
+        }).toList();
+      });
     });
   }
 

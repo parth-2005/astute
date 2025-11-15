@@ -65,7 +65,7 @@ class Market {
 
   factory Market.fromJson(Map<String, dynamic> json) {
     // resolution_time may come from Firestore as a Timestamp, a String, or already a DateTime
-    final rawResolution = json['resolution_time'];
+    final rawResolution = json['resolution_time'] ?? json['resolutionTime'] ?? json['resolution_at'];
     DateTime resolution;
     if (rawResolution == null) {
       resolution = DateTime.now();
@@ -83,11 +83,27 @@ class Market {
       description: json['description'] as String,
       category: json['category'] as String,
       resolutionTime: resolution,
-      yesPrice: (json['yes_price'] ?? 0).toDouble(),
-      noPrice: (json['no_price'] ?? 0).toDouble(),
-      liquidity: (json['liquidity'] ?? 0).toDouble(),
-      volume: (json['volume'] ?? 0).toDouble(),
-      imageUrl: json['image_url'] as String?,
+      yesPrice: (
+          (json['yes_price'] ?? json['yesPrice'] ?? json['yes'] ?? 0)
+              as num
+      )
+          .toDouble(),
+      noPrice: (
+          (json['no_price'] ?? json['noPrice'] ?? json['no'] ?? 0)
+              as num
+      )
+          .toDouble(),
+      liquidity: (
+          (json['liquidity'] ?? json['liquidity_amount'] ?? 0)
+              as num
+      )
+          .toDouble(),
+      volume: (
+          (json['volume'] ?? json['tradeVolume'] ?? 0)
+              as num
+      )
+          .toDouble(),
+      imageUrl: (json['image_url'] ?? json['imageUrl']) as String?,
       isFavorite: json['is_favorite'] as bool? ?? false,
       isResolved: json['is_resolved'] as bool?,
       resolvedValue: json['resolved_value'] as bool?,
