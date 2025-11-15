@@ -70,7 +70,11 @@ const matchOrder = onDocumentWritten("orders/{orderId}", async (event) => {
         .where(admin.firestore.FieldPath.documentId(), "!=", orderId)
         .limit(1);
 
-      // 6. Get query results *inside* the transaction
+      // 6. Get market data first (all reads must come before writes)
+      const marketRef = db.collection("markets").doc(newOrderData.marketId);
+      const marketDoc = await transaction.get(marketRef);
+
+      // 7. Get query results *inside* the transaction
       const matchSnapshot = await transaction.get(matchQuery);
 
       if (matchSnapshot.empty) {
@@ -85,7 +89,7 @@ const matchOrder = onDocumentWritten("orders/{orderId}", async (event) => {
         return;
       }
 
-      // 7. A match was found!
+      // 8. A match was found!
       const matchedDoc = matchSnapshot.docs[0];
       const matchedRef = matchedDoc.ref;
       const matchedId = matchedDoc.id;
@@ -94,7 +98,7 @@ const matchOrder = onDocumentWritten("orders/{orderId}", async (event) => {
 
       const executionTime = admin.firestore.FieldValue.serverTimestamp();
 
-      // 8. Update both orders *inside* the transaction
+      // 9. Update both orders *inside* the transaction
       transaction.update(newOrderRef, {
         status: "executed",
         executedAt: executionTime,
@@ -108,10 +112,6 @@ const matchOrder = onDocumentWritten("orders/{orderId}", async (event) => {
         executedPrice: complementaryPrice,
         matchedWith: orderId, // Good for auditing
       });
-
-      // 9. Update market rates based on the executed trade
-      const marketRef = db.collection("markets").doc(newOrderData.marketId);
-      const marketDoc = await transaction.get(marketRef);
 
       if (marketDoc.exists) {
         const marketData = marketDoc.data();
@@ -163,7 +163,7 @@ const matchOrder = onDocumentWritten("orders/{orderId}", async (event) => {
           lastTradeAt: executionTime,
         });
 
-        // 10. Add price history entry
+        // 11. Add price history entry
         const priceHistoryRef = marketRef.collection("price_history")
           .doc();
         transaction.set(priceHistoryRef, {
