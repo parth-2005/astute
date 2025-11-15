@@ -98,7 +98,7 @@ class MarketCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '₹${(market.yesPrice * 100).toStringAsFixed(2)}',
+                      '₹${(market.yesPrice * 10).toStringAsFixed(2)}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppTheme.positiveColor,
                         fontWeight: FontWeight.bold,
@@ -117,7 +117,7 @@ class MarketCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '₹${(market.noPrice * 100).toStringAsFixed(2)}',
+                      '₹${(market.noPrice * 10).toStringAsFixed(2)}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppTheme.negativeColor,
                         fontWeight: FontWeight.bold,

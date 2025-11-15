@@ -198,7 +198,7 @@ class _PriceHistoryChartState extends State<PriceHistoryChart> {
                         axisSide: meta.axisSide,
                         angle: 0,
                         child: Text(
-                          '${(value * 100).toInt()}',
+                          '${(value * 10).toInt()}',
                           style: TextStyle(
                             color: labelColor,
                             fontSize: 10,
@@ -261,7 +261,7 @@ class _PriceHistoryChartState extends State<PriceHistoryChart> {
                     return touchedBarSpots.map((barSpot) {
                       final date = DateTime.fromMillisecondsSinceEpoch(barSpot.x.toInt());
                       final dateStr = '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-                      final price = (barSpot.y * 100).toStringAsFixed(2);
+                      final price = (barSpot.y * 10).toStringAsFixed(2);
                       final isYesLine = barSpot.barIndex == 0;
                       
                       return LineTooltipItem(

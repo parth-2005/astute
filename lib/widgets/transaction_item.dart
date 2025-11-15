@@ -53,7 +53,7 @@ class TransactionItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            '\$${transaction.amount.toStringAsFixed(0)}',
+            '₹${transaction.amount.toStringAsFixed(0)}',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: colorScheme,

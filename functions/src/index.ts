@@ -120,33 +120,22 @@ const matchOrder = onDocumentWritten("orders/{orderId}", async (event) => {
         const currentNoPrice = marketData?.no_price ||
           marketData?.noPrice || 0.5;
 
-        // Calculate new market rates based on the executed trade
-        // Use weighted average where executed trades influence market price
-        const tradeWeight = 0.1; // 10% influence of new trade
-
-        let newYesPrice = currentYesPrice;
-        let newNoPrice = currentNoPrice;
+        // Calculate new market rates based on the executed trade price
+        // Set market price directly from the executed trade
+        let newYesPrice: number;
+        let newNoPrice: number;
 
         if (newOrderData.side === "yes") {
-          // Yes order executed - increase yes price slightly
-          const priceInfluence = (newOrderData.price / POT_TOTAL) *
-            tradeWeight;
-          newYesPrice = currentYesPrice * (1 - tradeWeight) +
-            priceInfluence;
+          // Yes order executed - set yes price from executed price
+          newYesPrice = newOrderData.price / POT_TOTAL;
+          newNoPrice = (POT_TOTAL - newOrderData.price) / POT_TOTAL;
         } else {
-          // No order executed - increase no price slightly
-          const priceInfluence = (newOrderData.price / POT_TOTAL) *
-            tradeWeight;
-          newNoPrice = currentNoPrice * (1 - tradeWeight) +
-            priceInfluence;
+          // No order executed - set no price from executed price
+          newNoPrice = newOrderData.price / POT_TOTAL;
+          newYesPrice = (POT_TOTAL - newOrderData.price) / POT_TOTAL;
         }
 
-        // Ensure prices are complementary and within bounds
-        const total = newYesPrice + newNoPrice;
-        if (total > 0) {
-          newYesPrice = newYesPrice / total;
-          newNoPrice = newNoPrice / total;
-        }
+        // Prices are already complementary (always add up to 1.0)
 
         // Ensure prices stay within reasonable bounds (0.01 to 0.99)
         newYesPrice = Math.max(0.01, Math.min(0.99, newYesPrice));

@@ -154,7 +154,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildWalletHeader() {
     final currencyFormat = NumberFormat.currency(
-      symbol: '\$',
+      symbol: '₹',
       decimalDigits: 2,
     );
 

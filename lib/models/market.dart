@@ -143,5 +143,5 @@ class Market {
     }
   }
 
-  String get probability => '${(yesPrice * 100).toStringAsFixed(1)}%';
+  String get probability => '${(yesPrice * 10 * 10).toStringAsFixed(1)}%';
 } 

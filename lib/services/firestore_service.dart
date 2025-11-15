@@ -193,4 +193,28 @@ class FirestoreService {
       }).toList();
     });
   }
+
+  /// Stream all pending orders for a specific market (order book)
+  Stream<List<Order>> getMarketOrderBook(String marketId) {
+    return _db
+        .collection('orders')
+        .where('marketId', isEqualTo: marketId)
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data();
+        final map = Map<String, dynamic>.from(data);
+        map['id'] = doc.id;
+        // align keys with Order.fromJson expectations
+        if (map.containsKey('createdAt')) map['created_at'] = map['createdAt'];
+        if (map.containsKey('executedAt')) map['executed_at'] = map['executedAt'];
+        if (map.containsKey('marketName')) map['market_name'] = map['marketName'];
+        if (map.containsKey('marketId')) map['market_id'] = map['marketId'];
+        if (map.containsKey('executedPrice')) map['executed_price'] = map['executedPrice'];
+        return Order.fromJson(map);
+      }).toList();
+    });
+  }
 }

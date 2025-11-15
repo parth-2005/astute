@@ -1,9 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as fs;
 import '../../models/market.dart';
-import '../../navigation/app_router.dart';
+import '../../models/order.dart';
+
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/price_history_chart.dart';
@@ -316,7 +317,7 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                               if (ts == null) continue;
                               if (ts is DateTime) {
                                 date = ts;
-                              } else if (ts is Timestamp) {
+                              } else if (ts is fs.Timestamp) {
                                 date = ts.toDate();
                               } else {
                                 date = DateTime.tryParse(ts.toString()) ?? DateTime.now();
@@ -341,7 +342,7 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                         const SizedBox(height: 24),
                         _buildMarketStats(market),
                         const SizedBox(height: 24),
-                        _buildCurrentListings(),
+                        _buildCurrentListings(market),
                       ],
                     ),
                   ),
@@ -510,25 +511,8 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
       ],
     );
   }
-Widget _buildCurrentListings() {
-  // Mock data
-  final List<Map<String, dynamic>> listings = [
-    {'qtyLeft': 1, 'buy': 5.0, 'sell': 50.0, 'qtyRight': 1},
-    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
-    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
-    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
-    {'qtyLeft':    0, 'buy':   0.00, 'sell': 0.0, 'qtyRight': 0},
-  ];
-
-  // Find max for normalization
-  final double maxQty = listings
-      .map((e) => (e['qtyLeft'] as int).toDouble())
-      .reduce((a, b) => a > b ? a : b);
-
-  final int totalLeft =
-      listings.fold(0, (sum, e) => sum + (e['qtyLeft'] as int));
-  final int totalRight =
-      listings.fold(0, (sum, e) => sum + (e['qtyRight'] as int));
+Widget _buildCurrentListings(Market market) {
+  final firestore = Provider.of<FirestoreService>(context, listen: false);
 
   return Container(
     padding: const EdgeInsets.all(16),
@@ -540,145 +524,137 @@ Widget _buildCurrentListings() {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top stats
+        // Top stats using live market data
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _statItem('OPEN', 248.00),
-            _statItem('HIGH', 251.45),
-            _statItem('LOW', 241.65),
-            _statItem('PREV. CLOSE', 241.50),
+            _statItem('YES PRICE', market.yesPrice * 10),
+            _statItem('NO PRICE', market.noPrice * 10),
+            _statItem('VOLUME', market.volume.toDouble()),
+            _statItem('CATEGORY', 0.0, isText: true, textValue: market.category),
           ],
         ),
         const Divider(height: 24),
 
-        const Text('Tap to select price',
+        const Text('Live Order Book',
             style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
 
-        // Order book table
-        Table(
-          columnWidths: const {
-            0: FlexColumnWidth(1),
-            1: FlexColumnWidth(1),
-            2: FlexColumnWidth(1),
-            3: FlexColumnWidth(1),
+        // Live order book using StreamBuilder
+        StreamBuilder<List<Order>>(
+          stream: firestore.getMarketOrderBook(market.id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text('No open orders'),
+                ),
+              );
+            }
+
+            final orders = snapshot.data!;
+            
+            return Column(
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(color: Colors.grey.shade100),
+                  child: Row(
+                    children: [
+                      Expanded(child: _tableCell('QTY', isHeader: true)),
+                      Expanded(child: _tableCell('PRICE', isHeader: true)),
+                      Expanded(child: _tableCell('SIDE', isHeader: true)),
+                      Expanded(child: _tableCell('USER', isHeader: true)),
+                    ],
+                  ),
+                ),
+                // Order rows
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: orders.length > 10 ? 10 : orders.length, // Show max 10 orders
+                  itemBuilder: (context, index) {
+                    final order = orders[index];
+                    return Container(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: Colors.grey.shade200),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: _tableCell(order.quantity.toString())),
+                          Expanded(child: _tableCell('₹${order.price.toStringAsFixed(2)}')),
+                          Expanded(
+                            child: _tableCell(
+                              order.sideText.toUpperCase(),
+                              color: order.side == OrderSide.yes 
+                                ? AppTheme.positiveColor 
+                                : AppTheme.negativeColor,
+                            ),
+                          ),
+                          Expanded(child: _tableCell('User')),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
           },
-          children: [
-            // Header
-            TableRow(
-              decoration: BoxDecoration(color: Colors.grey.shade100),
-              children: [
-                _tableCell('QTY', isHeader: true),
-                _tableCell('YES', isHeader: true),
-                _tableCell('NO', isHeader: true),
-                _tableCell('QTY', isHeader: true),
-              ],
-            ),
-            // Data rows
-            for (var row in listings)
-              TableRow(
-                children: [
-                  _tableCell('${row['qtyLeft']}'),
-                  _barCell(
-                    '₹${row['buy'].toStringAsFixed(2)}',
-                    (row['qtyLeft'] as int) / maxQty,
-                    Colors.green,
-                  ),
-                  _barCell(
-                    '₹${row['sell'].toStringAsFixed(2)}',
-                    (row['qtyRight'] as int) / maxQty,
-                    Colors.red,
-                  ),
-                  _tableCell('${row['qtyRight']}'),
-                ],
-              ),
-            // Total row
-            TableRow(
-              decoration: BoxDecoration(color: Colors.grey.shade100),
-              children: [
-                _tableCell('$totalLeft', isBold: true),
-                _tableCell(''),
-                _tableCell('Total',
-                    isBold: true, align: TextAlign.center),
-                _tableCell('$totalRight', isBold: true),
-              ],
-            ),
-          ],
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Total orders shown (max 10). Tap to select price.',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
       ],
     ),
   );
 }
 
-// ----------------------
-// Helpers below:
-
-Widget _statItem(String label, double value) {
-  return Column(
-    children: [
-      Text(label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey)),
-      const SizedBox(height: 4),
-      Text(value.toStringAsFixed(2),
-          style: const TextStyle(fontWeight: FontWeight.bold)),
-    ],
-  );
-}
-
-Widget _tableCell(String text,
-    {bool isHeader = false,
-    bool isBold = false,
-    TextAlign align = TextAlign.left}) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-    child: Text(
-      text,
-      textAlign: align,
-      style: TextStyle(
-        fontSize: isHeader ? 12 : 14,
-        fontWeight: isHeader || isBold ? FontWeight.bold : FontWeight.normal,
-        color: isHeader ? Colors.grey.shade600 : Colors.black,
-      ),
-    ),
-  );
-}
-
-Widget _barCell(String label, double fraction, Color color) {
-  // fraction: 0.0 to 1.0
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-    child: Stack(
+  Widget _statItem(String label, double value, {bool isText = false, String? textValue}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Background bar
-        FractionallySizedBox(
-          widthFactor: fraction.clamp(0.0, 1.0),
-          child: Container(
-            height: 28,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(4),
-            ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        // Overlay text
-        Container(
-          height: 28,
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
+        const SizedBox(height: 4),
+        Text(
+          isText ? (textValue ?? '') : value.toStringAsFixed(2),
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
-    ),
-  );
-}
-}
+    );
+  }
 
-// Helper function to add some realistic-looking variation for mock data
-double sin(double x) => (x - x * x * x / 6 + x * x * x * x * x / 120 - x * x * x * x * x * x * x / 5040) / 2;
-double cos(double x) => (1 - x * x / 2 + x * x * x * x / 24 - x * x * x * x * x * x / 720) / 2; 
+  Widget _tableCell(String text, {bool isHeader = false, Color? color}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
+          fontSize: isHeader ? 12 : 14,
+          color: color,
+        ),
+      ),
+    );
+  }
+} 
