@@ -98,14 +98,92 @@ const matchOrder = onDocumentWritten("orders/{orderId}", async (event) => {
       transaction.update(newOrderRef, {
         status: "executed",
         executedAt: executionTime,
+        executedPrice: newOrderData.price,
         matchedWith: matchedId, // Good for auditing
       });
 
       transaction.update(matchedRef, {
         status: "executed",
         executedAt: executionTime,
+        executedPrice: complementaryPrice,
         matchedWith: orderId, // Good for auditing
       });
+
+      // 9. Update market rates based on the executed trade
+      const marketRef = db.collection("markets").doc(newOrderData.marketId);
+      const marketDoc = await transaction.get(marketRef);
+
+      if (marketDoc.exists) {
+        const marketData = marketDoc.data();
+        const currentYesPrice = marketData?.yes_price ||
+          marketData?.yesPrice || 0.5;
+        const currentNoPrice = marketData?.no_price ||
+          marketData?.noPrice || 0.5;
+
+        // Calculate new market rates based on the executed trade
+        // Use weighted average where executed trades influence market price
+        const tradeWeight = 0.1; // 10% influence of new trade
+
+        let newYesPrice = currentYesPrice;
+        let newNoPrice = currentNoPrice;
+
+        if (newOrderData.side === "yes") {
+          // Yes order executed - increase yes price slightly
+          const priceInfluence = (newOrderData.price / POT_TOTAL) *
+            tradeWeight;
+          newYesPrice = currentYesPrice * (1 - tradeWeight) +
+            priceInfluence;
+        } else {
+          // No order executed - increase no price slightly
+          const priceInfluence = (newOrderData.price / POT_TOTAL) *
+            tradeWeight;
+          newNoPrice = currentNoPrice * (1 - tradeWeight) +
+            priceInfluence;
+        }
+
+        // Ensure prices are complementary and within bounds
+        const total = newYesPrice + newNoPrice;
+        if (total > 0) {
+          newYesPrice = newYesPrice / total;
+          newNoPrice = newNoPrice / total;
+        }
+
+        // Ensure prices stay within reasonable bounds (0.01 to 0.99)
+        newYesPrice = Math.max(0.01, Math.min(0.99, newYesPrice));
+        newNoPrice = Math.max(0.01, Math.min(0.99, newNoPrice));
+
+        // Update market with new prices
+        transaction.update(marketRef, {
+          yes_price: parseFloat(newYesPrice.toFixed(PRICE_PRECISION)),
+          no_price: parseFloat(newNoPrice.toFixed(PRICE_PRECISION)),
+          // Support both naming conventions
+          yesPrice: parseFloat(newYesPrice.toFixed(PRICE_PRECISION)),
+          noPrice: parseFloat(newNoPrice.toFixed(PRICE_PRECISION)),
+          volume: (marketData?.volume || 0) + newOrderData.quantity,
+          lastTradeAt: executionTime,
+        });
+
+        // 10. Add price history entry
+        const priceHistoryRef = marketRef.collection("price_history")
+          .doc();
+        transaction.set(priceHistoryRef, {
+          timestamp: executionTime,
+          yes: parseFloat(newYesPrice.toFixed(PRICE_PRECISION)),
+          no: parseFloat(newNoPrice.toFixed(PRICE_PRECISION)),
+          yes_price: parseFloat(newYesPrice.toFixed(PRICE_PRECISION)),
+          no_price: parseFloat(newNoPrice.toFixed(PRICE_PRECISION)),
+          volume: newOrderData.quantity,
+          executedPrice: newOrderData.price,
+          side: newOrderData.side,
+        });
+
+        logger.info(`Updated market rates for ${newOrderData.marketId}`, {
+          oldYes: currentYesPrice,
+          oldNo: currentNoPrice,
+          newYes: newYesPrice,
+          newNo: newNoPrice,
+        });
+      }
     });
 
     logger.info(`Transaction successful for order: ${orderId}`);

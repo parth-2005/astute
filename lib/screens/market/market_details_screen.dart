@@ -23,28 +23,7 @@ class MarketDetailsScreen extends StatefulWidget {
 
 class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
   bool _isFavorite = false;
-  late Market _market;
-  // price history will be loaded from Firestore streams
-
-  @override
-  void initState() {
-    super.initState();
-    // Placeholder market until live data is wired
-    _market = Market(
-      id: widget.marketId,
-      name: 'Loading...',
-      description: 'Loading market details...',
-      category: 'General',
-      resolutionTime: DateTime.now().add(const Duration(days: 7)),
-      yesPrice: 0.5,
-      noPrice: 0.5,
-      liquidity: 0,
-      volume: 0,
-      imageUrl: null,
-    );
-  }
-
-  // Market data and history will be loaded from Firestore via FirestoreService
+  // All market data now comes directly from Firestore streams
 
   void _toggleFavorite() {
     setState(() {
@@ -52,12 +31,12 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
     });
   }
 
-  void _navigateToTradeScreen({required bool isYes}) {
+  void _navigateToTradeScreen({required bool isYes, required Market market}) {
     // Initialize controllers with current prices
     final priceController = TextEditingController(
       text: isYes 
-        ? (_market.yesPrice * 10).toStringAsFixed(2)
-        : (_market.noPrice * 10).toStringAsFixed(2)
+        ? (market.yesPrice * 10).toStringAsFixed(2)
+        : (market.noPrice * 10).toStringAsFixed(2)
     );
     final quantityController = TextEditingController(
       text: '1',
@@ -190,8 +169,8 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
 
                         try {
                           await firestore.placeOrder(
-                            marketId: _market.id,
-                            marketName: _market.name,
+                            marketId: market.id,
+                            marketName: market.name,
                             isYes: isYes,
                             quantity: quantity,
                             price: price,
@@ -228,55 +207,88 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final firestore = Provider.of<FirestoreService>(context, listen: false);
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('RVNL'),
-        actions: [
-          IconButton(
-            icon: Icon(
-              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-            ),
-            onPressed: () => themeProvider.toggleTheme(),
-          ),
-          IconButton(
-            onPressed: _toggleFavorite,
-            icon: Icon(
-              _isFavorite ? Icons.star : Icons.star_border,
-              color: _isFavorite ? AppTheme.primaryColor : null,
-            ),
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.share_outlined),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: StreamBuilder<Market>(
-                  stream: Provider.of<FirestoreService>(context, listen: false).getMarketById(widget.marketId),
-                  builder: (context, marketSnap) {
-                    final market = marketSnap.data ?? _market;
 
-                    return Column(
+    return StreamBuilder<Market>(
+      stream: firestore.getMarketById(widget.marketId),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: const Text('Market'),
+            ),
+            body: const Center(child: Text('Error loading market')),
+          );
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: const Text('Market'),
+            ),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (!snapshot.hasData) {
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+              title: const Text('Market'),
+            ),
+            body: const Center(child: Text('Market not found')),
+          );
+        }
+
+        final market = snapshot.data!;
+
+        return Scaffold(
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(market.name),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                ),
+                onPressed: () => themeProvider.toggleTheme(),
+              ),
+              IconButton(
+                onPressed: _toggleFavorite,
+                icon: Icon(
+                  _isFavorite ? Icons.star : Icons.star_border,
+                  color: _isFavorite ? AppTheme.primaryColor : null,
+                ),
+              ),
+              IconButton(
+                onPressed: () {},
+                icon: const Icon(Icons.share_outlined),
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          market.name,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 8),
                         Text(
                           market.description,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -284,7 +296,7 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        _buildPriceSection(),
+                        _buildPriceSection(market),
                         const SizedBox(height: 24),
                         Text(
                           'Price History',
@@ -292,11 +304,10 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                         ),
                         const SizedBox(height: 8),
                         StreamBuilder<List<Map<String, dynamic>>>(
-                          stream: Provider.of<FirestoreService>(context, listen: false).getMarketPriceHistory(widget.marketId),
+                          stream: firestore.getMarketPriceHistory(widget.marketId),
                           builder: (context, histSnap) {
                             final list = histSnap.data ?? <Map<String, dynamic>>[];
 
-                            // convert to FlSpot lists
                             final yesData = <FlSpot>[];
                             final noData = <FlSpot>[];
                             for (var item in list) {
@@ -318,84 +329,81 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                               noData.add(FlSpot(x, no.toDouble()));
                             }
 
-                            final minY = 0.0;
-                            final maxY = 1.0;
-
                             return PriceHistoryChart(
                               yesData: yesData,
                               noData: noData,
-                              minY: minY,
-                              maxY: maxY,
+                              minY: 0.0,
+                              maxY: 1.0,
                               height: 250,
                             );
                           },
                         ),
                         const SizedBox(height: 24),
-                        _buildMarketStats(),
+                        _buildMarketStats(market),
                         const SizedBox(height: 24),
                         _buildCurrentListings(),
                       ],
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Container(
-          padding: const EdgeInsets.all(16.0),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _navigateToTradeScreen(isYes: true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryColor,
-                    foregroundColor: AppTheme.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: const Text('Yes'),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _navigateToTradeScreen(isYes: false),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: themeProvider.isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground,
-                    foregroundColor: AppTheme.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      side: BorderSide(
-                        color: AppTheme.primaryColor,
-                        width: 1,
-                      ),
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text('No'),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+          bottomNavigationBar: SafeArea(
+            child: Container(
+              padding: const EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).scaffoldBackgroundColor,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _navigateToTradeScreen(isYes: true, market: market),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: AppTheme.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('Yes'),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _navigateToTradeScreen(isYes: false, market: market),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: themeProvider.isDarkMode ? AppTheme.darkBackground : AppTheme.lightBackground,
+                        foregroundColor: AppTheme.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(
+                            color: AppTheme.primaryColor,
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: const Text('No'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildPriceSection() {
+  Widget _buildPriceSection(Market market) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -417,7 +425,7 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '₹${(_market.yesPrice * 10).toStringAsFixed(2)}',
+                    '₹${(market.yesPrice * 10).toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AppTheme.positiveColor,
                     ),
@@ -433,7 +441,7 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '₹${(_market.noPrice * 10).toStringAsFixed(2)}',
+                    '₹${(market.noPrice * 10).toStringAsFixed(2)}',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: AppTheme.negativeColor,
                     ),
@@ -453,7 +461,7 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                 ),
               ),
               Text(
-                _market.probability,
+                market.probability,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
@@ -463,7 +471,7 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
     );
   }
 
-  Widget _buildMarketStats() {
+  Widget _buildMarketStats(Market market) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -475,11 +483,11 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
         children: [
           _buildStatRow('Resolution Date', 'Apr 8, 2024 3:30 PM'),
           const SizedBox(height: 8),
-          _buildStatRow('Time Left', _market.timeLeft),
+          _buildStatRow('Time Left', market.timeLeft),
           const SizedBox(height: 8),
-          _buildStatRow('Volume', '₹${(_market.volume / 100000).toStringAsFixed(2)}L'),
+          _buildStatRow('Volume', '₹${(market.volume / 100000).toStringAsFixed(2)}L'),
           const SizedBox(height: 8),
-          _buildStatRow('Liquidity', '₹${(_market.liquidity / 100000).toStringAsFixed(2)}L'),
+          _buildStatRow('Liquidity', '₹${(market.liquidity / 100000).toStringAsFixed(2)}L'),
         ],
       ),
     );

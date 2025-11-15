@@ -45,34 +45,29 @@ class FirestoreService {
     await _db.collection('orders').add(orderData);
   }
 
-  Stream<List<Order>> getPendingOrders() {
-    // Return a stream that reacts to auth state. When user changes, we switch to the
-    // appropriate orders query stream. This ensures UI updates when auth becomes available.
-    return _auth.authStateChanges().asyncExpand((user) {
-      if (user == null) {
-        return Stream.value(<Order>[]);
-      }
-
-      return _db
-          .collection('orders')
-          .where('userId', isEqualTo: user.uid)
-          .where('status', isEqualTo: 'pending')
-          .orderBy('createdAt', descending: true)
-          .snapshots()
-          .map((snap) {
-        return snap.docs.map((doc) {
-          final data = doc.data() as Map<String, dynamic>;
-          final map = Map<String, dynamic>.from(data);
-          map['id'] = doc.id;
-          // align keys with Order.fromJson expectations (support camelCase or snake_case)
-          if (map.containsKey('createdAt')) map['created_at'] = map['createdAt'];
-          if (map.containsKey('executedAt')) map['executed_at'] = map['executedAt'];
-          if (map.containsKey('marketName')) map['market_name'] = map['marketName'];
-          if (map.containsKey('marketId')) map['market_id'] = map['marketId'];
-          if (map.containsKey('executedPrice')) map['executed_price'] = map['executedPrice'];
-          return Order.fromJson(map);
-        }).toList();
-      });
+  Stream<List<Order>> getPendingOrders(String userId) {
+    if (userId.isEmpty) {
+      return Stream.value(<Order>[]);
+    }
+    return _db
+        .collection('orders')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'pending')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final map = Map<String, dynamic>.from(data);
+        map['id'] = doc.id;
+        // align keys with Order.fromJson expectations
+        if (map.containsKey('createdAt')) map['created_at'] = map['createdAt'];
+        if (map.containsKey('executedAt')) map['executed_at'] = map['executedAt'];
+        if (map.containsKey('marketName')) map['market_name'] = map['marketName'];
+        if (map.containsKey('marketId')) map['market_id'] = map['marketId'];
+        if (map.containsKey('executedPrice')) map['executed_price'] = map['executedPrice'];
+        return Order.fromJson(map);
+      }).toList();
     });
   }
 
@@ -80,7 +75,7 @@ class FirestoreService {
   Stream<Market> getMarketById(String marketId) {
     final docRef = _db.collection('markets').doc(marketId);
     return docRef.snapshots().map((doc) {
-      final data = doc.data() as Map<String, dynamic>?;
+      final data = doc.data();
       if (data == null) {
         // Return a minimal Market if document doesn't exist yet
         return Market(
@@ -107,12 +102,94 @@ class FirestoreService {
     final coll = _db.collection('markets').doc(marketId).collection('price_history').orderBy('timestamp');
     return coll.snapshots().map((snap) {
       return snap.docs.map((doc) {
-        final d = Map<String, dynamic>.from(doc.data() as Map<String, dynamic>);
+        final d = Map<String, dynamic>.from(doc.data());
         // ensure timestamp key exists
         if (d.containsKey('timestamp')) {
           d['timestamp'] = d['timestamp'];
         }
         return d;
+      }).toList();
+    });
+  }
+
+  /// Stream user's positions (executed orders from active markets)
+  Stream<List<Order>> getUserPositions(String userId) {
+    if (userId.isEmpty) {
+      return Stream.value(<Order>[]);
+    }
+    return _db
+        .collection('orders')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'executed')
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data();
+        final map = Map<String, dynamic>.from(data);
+        map['id'] = doc.id;
+        // Align keys with Order.fromJson expectations
+        if (map.containsKey('createdAt')) map['created_at'] = map['createdAt'];
+        if (map.containsKey('executedAt')) map['executed_at'] = map['executedAt'];
+        if (map.containsKey('marketName')) map['market_name'] = map['marketName'];
+        if (map.containsKey('marketId')) map['market_id'] = map['marketId'];
+        if (map.containsKey('executedPrice')) map['executed_price'] = map['executedPrice'];
+        return Order.fromJson(map);
+      }).toList();
+    });
+  }
+
+  /// Stream user's order history (cancelled, expired, rejected orders)
+  Stream<List<Order>> getOrderHistory(String userId) {
+    if (userId.isEmpty) {
+      return Stream.value(<Order>[]);
+    }
+    return _db
+        .collection('orders')
+        .where('userId', isEqualTo: userId)
+        .where('status', whereIn: ['cancelled', 'expired', 'rejected'])
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data();
+        final map = Map<String, dynamic>.from(data);
+        map['id'] = doc.id;
+        // Align keys with Order.fromJson expectations
+        if (map.containsKey('createdAt')) map['created_at'] = map['createdAt'];
+        if (map.containsKey('executedAt')) map['executed_at'] = map['executedAt'];
+        if (map.containsKey('marketName')) map['market_name'] = map['marketName'];
+        if (map.containsKey('marketId')) map['market_id'] = map['marketId'];
+        if (map.containsKey('executedPrice')) map['executed_price'] = map['executedPrice'];
+        return Order.fromJson(map);
+      }).toList();
+    });
+  }
+
+  /// Get all markets (for market list screen)
+  Stream<List<Market>> getAllMarkets() {
+    return _db.collection('markets').snapshots().map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final map = Map<String, dynamic>.from(data);
+        map['id'] = doc.id;
+        return Market.fromJson(map);
+      }).toList();
+    });
+  }
+
+  /// Get markets by category
+  Stream<List<Market>> getMarketsByCategory(String category) {
+    return _db
+        .collection('markets')
+        .where('category', isEqualTo: category)
+        .snapshots()
+        .map((snap) {
+      return snap.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        final map = Map<String, dynamic>.from(data);
+        map['id'] = doc.id;
+        return Market.fromJson(map);
       }).toList();
     });
   }
