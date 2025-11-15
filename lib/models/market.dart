@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Market {
   final String id;
   final String name;
@@ -62,16 +64,29 @@ class Market {
   }
 
   factory Market.fromJson(Map<String, dynamic> json) {
+    // resolution_time may come from Firestore as a Timestamp, a String, or already a DateTime
+    final rawResolution = json['resolution_time'];
+    DateTime resolution;
+    if (rawResolution == null) {
+      resolution = DateTime.now();
+    } else if (rawResolution is Timestamp) {
+      resolution = rawResolution.toDate();
+    } else if (rawResolution is DateTime) {
+      resolution = rawResolution;
+    } else {
+      resolution = DateTime.parse(rawResolution.toString());
+    }
+
     return Market(
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
       category: json['category'] as String,
-      resolutionTime: DateTime.parse(json['resolution_time'] as String),
-      yesPrice: json['yes_price'].toDouble(),
-      noPrice: json['no_price'].toDouble(),
-      liquidity: json['liquidity'].toDouble(),
-      volume: json['volume'].toDouble(),
+      resolutionTime: resolution,
+      yesPrice: (json['yes_price'] ?? 0).toDouble(),
+      noPrice: (json['no_price'] ?? 0).toDouble(),
+      liquidity: (json['liquidity'] ?? 0).toDouble(),
+      volume: (json['volume'] ?? 0).toDouble(),
       imageUrl: json['image_url'] as String?,
       isFavorite: json['is_favorite'] as bool? ?? false,
       isResolved: json['is_resolved'] as bool?,

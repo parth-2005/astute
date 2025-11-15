@@ -50,6 +50,7 @@ dependencies:
   url_launcher: ^6.3.1
   flutter_launcher_icons: ^0.14.3
   flutter_native_splash: ^2.4.6
+  cloud_firestore: ^4.17.5
 
 flutter_icons:
   android: true

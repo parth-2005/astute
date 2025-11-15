@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import '../../models/order.dart';
 import '../../theme/app_theme.dart';
 import '../../navigation/app_router.dart';
+import 'package:provider/provider.dart';
+import '../../services/firestore_service.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -14,91 +16,7 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // Mock data for orders
-  final List<Order> _pendingOrders = [
-    Order(
-      id: '1',
-      marketId: '1',
-      marketName: 'Will RVNL close above ₹350.30 on April 8th, 2024?',
-      quantity: 10,
-      price: 65.0,
-      side: OrderSide.yes,
-      status: OrderStatus.pending,
-      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-    ),
-    Order(
-      id: '2',
-      marketId: '2',
-      marketName: 'Will BJP win more than 300 seats in 2024 Lok Sabha elections?',
-      quantity: 5,
-      price: 72.0,
-      side: OrderSide.yes,
-      status: OrderStatus.pending,
-      createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-    ),
-  ];
-
-  // Mock data for positions
-  final List<Position> _positions = [
-    Position(
-      id: '1',
-      marketId: '3',
-      marketName: 'Will India win more than 70 medals in 2024 Olympics?',
-      quantity: 15,
-      avgPrice: 45.0,
-      side: OrderSide.no,
-      openedAt: DateTime.now().subtract(const Duration(days: 3)),
-      currentPrice: 55.0,
-    ),
-    Position(
-      id: '2',
-      marketId: '4',
-      marketName: 'Will RBI increase repo rate in April 2024?',
-      quantity: 8,
-      avgPrice: 38.0,
-      side: OrderSide.no,
-      openedAt: DateTime.now().subtract(const Duration(days: 5)),
-      currentPrice: 40.0,
-    ),
-  ];
-
-  // Mock data for order history
-  final List<Order> _orderHistory = [
-    Order(
-      id: '3',
-      marketId: '1',
-      marketName: 'Will RVNL close above ₹350.30 on April 8th, 2024?',
-      quantity: 20,
-      price: 60.0,
-      side: OrderSide.yes,
-      status: OrderStatus.executed,
-      createdAt: DateTime.now().subtract(const Duration(days: 1)),
-      executedAt: DateTime.now().subtract(const Duration(hours: 23)),
-      executedPrice: 60.0,
-    ),
-    Order(
-      id: '4',
-      marketId: '2',
-      marketName: 'Will BJP win more than 300 seats in 2024 Lok Sabha elections?',
-      quantity: 12,
-      price: 75.0,
-      side: OrderSide.yes,
-      status: OrderStatus.cancelled,
-      createdAt: DateTime.now().subtract(const Duration(days: 2)),
-    ),
-    Order(
-      id: '5',
-      marketId: '3',
-      marketName: 'Will India win more than 70 medals in 2024 Olympics?',
-      quantity: 30,
-      price: 50.0,
-      side: OrderSide.no,
-      status: OrderStatus.executed,
-      createdAt: DateTime.now().subtract(const Duration(days: 4)),
-      executedAt: DateTime.now().subtract(const Duration(days: 3, hours: 22)),
-      executedPrice: 48.0,
-    ),
-  ];
+  // Live orders will be provided by FirestoreService -> getPendingOrders()
 
   @override
   void initState() {
@@ -143,63 +61,44 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   Widget _buildOrdersTab() {
-    if (_pendingOrders.isEmpty) {
-      return SafeArea(
-        child: _buildEmptyState('No pending orders', 'Your active orders will appear here.'),
-      );
-    }
+    final firestore = Provider.of<FirestoreService>(context, listen: false);
 
-    return SafeArea(
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _pendingOrders.length,
-        separatorBuilder: (context, index) => const Divider(),
-        itemBuilder: (context, index) {
-          final order = _pendingOrders[index];
-          return _buildOrderItem(order);
-        },
-      ),
+    return StreamBuilder<List<Order>>(
+      stream: firestore.getPendingOrders(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading orders'));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final orders = snapshot.data ?? [];
+        if (orders.isEmpty) {
+          return SafeArea(child: _buildEmptyState('No pending orders', 'Your active orders will appear here.'));
+        }
+
+        return SafeArea(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: orders.length,
+            separatorBuilder: (context, index) => const Divider(),
+            itemBuilder: (context, index) {
+              final order = orders[index];
+              return _buildOrderItem(order);
+            },
+          ),
+        );
+      },
     );
   }
 
   Widget _buildPositionsTab() {
-    if (_positions.isEmpty) {
-      return SafeArea(
-        child: _buildEmptyState('No positions', 'Your open positions will appear here.'),
-      );
-    }
-
-    return SafeArea(
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _positions.length,
-        separatorBuilder: (context, index) => const Divider(),
-        itemBuilder: (context, index) {
-          final position = _positions[index];
-          return _buildPositionItem(position);
-        },
-      ),
-    );
+    return SafeArea(child: _buildEmptyState('No positions', 'Your open positions will appear here.'));
   }
 
   Widget _buildHistoryTab() {
-    if (_orderHistory.isEmpty) {
-      return SafeArea(
-        child: _buildEmptyState('No order history', 'Your order history will appear here.'),
-      );
-    }
-
-    return SafeArea(
-      child: ListView.separated(
-        padding: const EdgeInsets.all(16),
-        itemCount: _orderHistory.length,
-        separatorBuilder: (context, index) => const Divider(),
-        itemBuilder: (context, index) {
-          final order = _orderHistory[index];
-          return _buildHistoryItem(order);
-        },
-      ),
-    );
+    return SafeArea(child: _buildEmptyState('No order history', 'Your order history will appear here.'));
   }
 
   Widget _buildOrderItem(Order order) {

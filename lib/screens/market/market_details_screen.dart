@@ -1,11 +1,13 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/market.dart';
 import '../../navigation/app_router.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/price_history_chart.dart';
+import '../../services/firestore_service.dart';
 
 class MarketDetailsScreen extends StatefulWidget {
   final String marketId;
@@ -22,70 +24,27 @@ class MarketDetailsScreen extends StatefulWidget {
 class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
   bool _isFavorite = false;
   late Market _market;
-  bool _isLoading = false;
-
-  // Mock price history data
-  late List<FlSpot> _yesHistoryData;
-  late List<FlSpot> _noHistoryData;
+  // price history will be loaded from Firestore streams
 
   @override
   void initState() {
     super.initState();
-    _loadMarketData();
-    _generateMockHistoryData();
-  }
-
-  void _loadMarketData() {
-    // Mock data - in real app, fetch from API
+    // Placeholder market until live data is wired
     _market = Market(
       id: widget.marketId,
-      name: 'Will RVNL close above ₹350.30 on April 8th, 2024?',
-      description: 'This market will resolve to "Yes" if RVNL stock closes above ₹350.30 on April 8th, 2024.',
-      category: 'Stocks',
-      resolutionTime: DateTime(2024, 4, 8, 15, 30),
-      yesPrice: 0.65,
-      noPrice: 0.35,
-      liquidity: 50000,
-      volume: 56390,
-      imageUrl: 'assets/images/rvnl.png',
+      name: 'Loading...',
+      description: 'Loading market details...',
+      category: 'General',
+      resolutionTime: DateTime.now().add(const Duration(days: 7)),
+      yesPrice: 0.5,
+      noPrice: 0.5,
+      liquidity: 0,
+      volume: 0,
+      imageUrl: null,
     );
   }
 
-  void _generateMockHistoryData() {
-    final now = DateTime.now();
-    final random = DateTime.now().millisecondsSinceEpoch % 1000 / 1000;
-    
-    // Generate 6 months of daily Yes price data
-    _yesHistoryData = List.generate(180, (index) {
-      final date = now.subtract(Duration(days: 180 - index));
-      double volatility = 0.04 * (1 + 0.5 * (sin(index / 10) + cos(index / 21)));
-      
-      // Start with the current price and work backwards with some volatility
-      double price = _market.yesPrice;
-      if (index < 179) {
-        // Apply some randomness and trend
-        double trend = 0.0002 * (179 - index) * (random > 0.5 ? 1 : -1);
-        double noise = (random * 2 - 1) * volatility;
-        price = price - trend + noise;
-        
-        // Ensure price is between 0 and 1
-        price = price.clamp(0.1, 0.9);
-      }
-      
-      return FlSpot(date.millisecondsSinceEpoch.toDouble(), price);
-    });
-    
-    // Generate corresponding No price data (roughly 1 - yesPrice, with some variation)
-    _noHistoryData = _yesHistoryData.map((spot) {
-      double variation = (random * 0.04) - 0.02;
-      double noPrice = (1 - spot.y) + variation;
-      
-      // Ensure price is between 0 and 1
-      noPrice = noPrice.clamp(0.1, 0.9);
-      
-      return FlSpot(spot.x, noPrice);
-    }).toList();
-  }
+  // Market data and history will be loaded from Firestore via FirestoreService
 
   void _toggleFavorite() {
     setState(() {
@@ -211,9 +170,41 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Implement order placement
-                        Navigator.pop(context);
+                      onPressed: () async {
+                        final firestore = Provider.of<FirestoreService>(context, listen: false);
+                        final quantity = int.tryParse(quantityController.text) ?? 0;
+                        final price = double.tryParse(priceController.text) ?? 0.0;
+
+                        if (quantity <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a valid quantity')),
+                          );
+                          return;
+                        }
+                        if (price <= 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a valid price')),
+                          );
+                          return;
+                        }
+
+                        try {
+                          await firestore.placeOrder(
+                            marketId: _market.id,
+                            marketName: _market.name,
+                            isYes: isYes,
+                            quantity: quantity,
+                            price: price,
+                          );
+                          if (mounted) Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Order placed')),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error placing order: $e')),
+                          );
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isYes ? AppTheme.positiveColor : AppTheme.negativeColor,
@@ -273,40 +264,79 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _market.name,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _market.description,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildPriceSection(),
-                    const SizedBox(height: 24),
-                    Text(
-                      'Price History',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    PriceHistoryChart(
-                      yesData: _yesHistoryData,
-                      noData: _noHistoryData,
-                      minY: 0.0,
-                      maxY: 1.0,
-                      height: 250,
-                    ),
-                    const SizedBox(height: 24),
-                    _buildMarketStats(),
-                    const SizedBox(height: 24),
-                    _buildCurrentListings(),
-                  ],
+                child: StreamBuilder<Market>(
+                  stream: Provider.of<FirestoreService>(context, listen: false).getMarketById(widget.marketId),
+                  builder: (context, marketSnap) {
+                    final market = marketSnap.data ?? _market;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          market.name,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          market.description,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildPriceSection(),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Price History',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        StreamBuilder<List<Map<String, dynamic>>>(
+                          stream: Provider.of<FirestoreService>(context, listen: false).getMarketPriceHistory(widget.marketId),
+                          builder: (context, histSnap) {
+                            final list = histSnap.data ?? <Map<String, dynamic>>[];
+
+                            // convert to FlSpot lists
+                            final yesData = <FlSpot>[];
+                            final noData = <FlSpot>[];
+                            for (var item in list) {
+                              final ts = item['timestamp'];
+                              DateTime date;
+                              if (ts == null) continue;
+                              if (ts is DateTime) {
+                                date = ts;
+                              } else if (ts is Timestamp) {
+                                date = ts.toDate();
+                              } else {
+                                date = DateTime.tryParse(ts.toString()) ?? DateTime.now();
+                              }
+
+                              final x = date.millisecondsSinceEpoch.toDouble();
+                              final yes = (item['yes'] ?? item['yes_price'] ?? item['yesPrice']) as num? ?? 0.0;
+                              final no = (item['no'] ?? item['no_price'] ?? item['noPrice']) as num? ?? 0.0;
+                              yesData.add(FlSpot(x, yes.toDouble()));
+                              noData.add(FlSpot(x, no.toDouble()));
+                            }
+
+                            final minY = 0.0;
+                            final maxY = 1.0;
+
+                            return PriceHistoryChart(
+                              yesData: yesData,
+                              noData: noData,
+                              minY: minY,
+                              maxY: maxY,
+                              height: 250,
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 24),
+                        _buildMarketStats(),
+                        const SizedBox(height: 24),
+                        _buildCurrentListings(),
+                      ],
+                    );
+                  },
                 ),
               ),
             ],

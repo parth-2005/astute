@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 enum OrderStatus {
   pending,
@@ -77,22 +78,45 @@ class Order {
   bool get isCancelled => status == OrderStatus.cancelled || status == OrderStatus.expired || status == OrderStatus.rejected;
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    // created_at and executed_at may be Firestore Timestamps or ISO strings
+    final rawCreated = json['created_at'];
+    DateTime createdAt;
+    if (rawCreated == null) {
+      createdAt = DateTime.now();
+    } else if (rawCreated is Timestamp) {
+      createdAt = rawCreated.toDate();
+    } else if (rawCreated is DateTime) {
+      createdAt = rawCreated;
+    } else {
+      createdAt = DateTime.parse(rawCreated.toString());
+    }
+
+    final rawExecuted = json['executed_at'];
+    DateTime? executedAt;
+    if (rawExecuted == null) {
+      executedAt = null;
+    } else if (rawExecuted is Timestamp) {
+      executedAt = rawExecuted.toDate();
+    } else if (rawExecuted is DateTime) {
+      executedAt = rawExecuted;
+    } else {
+      executedAt = DateTime.tryParse(rawExecuted.toString());
+    }
+
     return Order(
       id: json['id'] as String,
       marketId: json['market_id'] as String,
       marketName: json['market_name'] as String,
-      quantity: json['quantity'].toDouble(),
-      price: json['price'].toDouble(),
+      quantity: (json['quantity'] ?? 0).toDouble(),
+      price: (json['price'] ?? 0).toDouble(),
       side: OrderSide.values.firstWhere(
         (e) => e.toString() == 'OrderSide.${json['side']}',
       ),
       status: OrderStatus.values.firstWhere(
         (e) => e.toString() == 'OrderStatus.${json['status']}',
       ),
-      createdAt: DateTime.parse(json['created_at'] as String),
-      executedAt: json['executed_at'] != null
-          ? DateTime.parse(json['executed_at'] as String)
-          : null,
+      createdAt: createdAt,
+      executedAt: executedAt,
       executedPrice: json['executed_price']?.toDouble(),
     );
   }

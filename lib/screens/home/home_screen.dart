@@ -5,6 +5,7 @@ import '../../navigation/app_router.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/theme_provider.dart';
 import '../../widgets/market_card.dart';
+import '../../services/firestore_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -13,68 +14,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     
-    // Mock market data (in a real app, this would come from an API)
-    final List<Market> trendingMarkets = [
-          Market(
-  id: 'biz_001',
-  name: 'Will Tesla report a profit in Q2 2025?',
-  description: 'Tesla is scheduled to release its Q2 earnings. Will the company post a net profit?',
-  category: 'Business',
-  resolutionTime: DateTime(2025, 7, 30),
-  yesPrice: 0.062,
-  noPrice: 0.038,
-  liquidity: 10000,
-  volume: 8500,
-),
-
-Market(
-  id: 'biz_002',
-  name: 'Will Apple launch a new MacBook model by September 2025?',
-  description: 'Apple typically hosts its product event in September. Will it announce a new MacBook?',
-  category: 'Business',
-  resolutionTime: DateTime(2025, 9, 15),
-  yesPrice: 0.057,
-  noPrice: 0.043,
-  liquidity: 8000,
-  volume: 6700,
-),
-
-Market(
-  id: 'biz_003',
-  name: 'Will Google face an antitrust fine in 2025?',
-  description: 'With regulatory pressure increasing, will Google receive a major fine this year?',
-  category: 'Business',
-  resolutionTime: DateTime(2025, 12, 31),
-  yesPrice: 0.046,
-  noPrice: 0.054,
-  liquidity: 12000,
-  volume: 10450,
-),
-
-Market(
-  id: 'biz_004',
-  name: 'Will OpenAI raise a new funding round in 2025?',
-  description: 'Rumors suggest OpenAI may seek new capital. Will it happen this year?',
-  category: 'Business',
-  resolutionTime: DateTime(2025, 11, 1),
-  yesPrice: 0.051,
-  noPrice: 0.049,
-  liquidity: 9000,
-  volume: 7200,
-),
-
-Market(
-  id: 'biz_005',
-  name: 'Will Reliance acquire any startup in 2025?',
-  description: 'Reliance has been actively acquiring startups. Will it make a new acquisition this year?',
-  category: 'Business',
-  resolutionTime: DateTime(2025, 12, 31),
-  yesPrice: 0.064,
-  noPrice: 0.036,
-  liquidity: 9500,
-  volume: 7900,
-),
-    ];
+    // trending markets will be loaded from Firestore via StreamBuilder
 
     return Scaffold(
       body: SafeArea(
@@ -161,7 +101,7 @@ Market(
               const SizedBox(height: 24),
               _buildSectionHeader(context, 'Trending Contracts'),
               const SizedBox(height: 16),
-              _buildTrendingMarkets(context, trendingMarkets),
+              _buildTrendingMarkets(context),
               const SizedBox(height: 24),
               _buildLearningSection(context),
               const SizedBox(height: 24),
@@ -273,21 +213,39 @@ Market(
     );
   }
 
-  Widget _buildTrendingMarkets(BuildContext context, List<Market> markets) {
-    return ListView.separated(
-      physics: const NeverScrollableScrollPhysics(),
-      shrinkWrap: true,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: markets.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 16),
-      itemBuilder: (context, index) {
-        return MarketCard(
-          market: markets[index],
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              AppRouter.marketDetails,
-              arguments: markets[index].id,
+  Widget _buildTrendingMarkets(BuildContext context) {
+    final firestore = Provider.of<FirestoreService>(context, listen: false);
+
+    return StreamBuilder<List<Market>>(
+      stream: firestore.getTrendingMarkets(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(child: Text('Error loading markets'));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final markets = snapshot.data ?? [];
+        if (markets.isEmpty) {
+          return Center(child: Text('No trending markets'));
+        }
+
+        return ListView.separated(
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: markets.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            return MarketCard(
+              market: markets[index],
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRouter.marketDetails,
+                  arguments: markets[index].id,
+                );
+              },
             );
           },
         );

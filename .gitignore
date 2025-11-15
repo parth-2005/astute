@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+private_key.json
+# Firebase related
+firebase-debug.log
+package-lock.json

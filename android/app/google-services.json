@@ -1,45 +1,51 @@
 {
   "project_info": {
-    "project_number": "566400543574",
-    "project_id": "astute-contracts",
-    "storage_bucket": "astute-contracts.firebasestorage.app"
+    "project_number": "1047724374342",
+    "project_id": "astute-2025",
+    "storage_bucket": "astute-2025.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:566400543574:android:fa75a0f20f3e4c6b59c4f7",
+        "mobilesdk_app_id": "1:1047724374342:android:93b7ec5362b706fb9d0d47",
         "android_client_info": {
           "package_name": "com.example.astute"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1047724374342-35sk7gvujkagdh49u7r49qju96dtvmho.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.astute",
+            "certificate_hash": "403ffdd6650a70e5e6799ff3973da44b663f6f2e"
+          }
+        },
+        {
+          "client_id": "1047724374342-dj8g6mtdrabv6el8r09ooq3ns490ovca.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyAOeGOHOQcwOuH2aYq8HXRSUqLBqYWhuUM"
+          "current_key": "AIzaSyD5jzASt1CxGjNFphQB1w0aniXb14YF_nw"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:566400543574:android:1ffeab354eb7b0ae59c4f7",
-        "android_client_info": {
-          "package_name": "com.example.astute_contracts"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAOeGOHOQcwOuH2aYq8HXRSUqLBqYWhuUM"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1047724374342-dj8g6mtdrabv6el8r09ooq3ns490ovca.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1047724374342-bpnftben5e939kkd5cfeie3ghq4se7oq.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.astute"
+              }
+            }
+          ]
         }
       }
     }

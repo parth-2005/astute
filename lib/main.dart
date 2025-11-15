@@ -9,6 +9,7 @@ import 'theme/theme_provider.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'navigation/bottom_nav.dart';
+import 'services/firestore_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider(create: (_) => FirestoreService()),
         StreamProvider<auth.User?>.value(
           value: auth.FirebaseAuth.instance.authStateChanges(),
           initialData: null,

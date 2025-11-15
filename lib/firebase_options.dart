@@ -41,49 +41,50 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDupT3iY1MazktaW5Tf_ijBENbTNjDXp-Y',
-    appId: '1:566400543574:web:6237fdb7c3fd58a859c4f7',
-    messagingSenderId: '566400543574',
-    projectId: 'astute-contracts',
-    authDomain: 'astute-contracts.firebaseapp.com',
-    storageBucket: 'astute-contracts.firebasestorage.app',
-    measurementId: 'G-LBZJF229VP',
+    apiKey: 'AIzaSyBldL3_zaOOBaX2WlrUT1JHROKrKdgTOX4',
+    appId: '1:1047724374342:web:3300a15f8ae5a0919d0d47',
+    messagingSenderId: '1047724374342',
+    projectId: 'astute-2025',
+    authDomain: 'astute-2025.firebaseapp.com',
+    storageBucket: 'astute-2025.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAOeGOHOQcwOuH2aYq8HXRSUqLBqYWhuUM',
-    appId: '1:566400543574:android:fa75a0f20f3e4c6b59c4f7',
-    messagingSenderId: '566400543574',
-    projectId: 'astute-contracts',
-    storageBucket: 'astute-contracts.firebasestorage.app',
+    apiKey: 'AIzaSyD5jzASt1CxGjNFphQB1w0aniXb14YF_nw',
+    appId: '1:1047724374342:android:93b7ec5362b706fb9d0d47',
+    messagingSenderId: '1047724374342',
+    projectId: 'astute-2025',
+    storageBucket: 'astute-2025.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAvZh63zh6VyVElwNobGTqJZjAqskr8Wpo',
-    appId: '1:566400543574:ios:c1dfea63c2fd0be759c4f7',
-    messagingSenderId: '566400543574',
-    projectId: 'astute-contracts',
-    storageBucket: 'astute-contracts.firebasestorage.app',
+    apiKey: 'AIzaSyCZvD9ZC3SdcNzhFScz-qTXBYSXgw-Jm3w',
+    appId: '1:1047724374342:ios:890a697ce5414c059d0d47',
+    messagingSenderId: '1047724374342',
+    projectId: 'astute-2025',
+    storageBucket: 'astute-2025.firebasestorage.app',
+    androidClientId: '1047724374342-35sk7gvujkagdh49u7r49qju96dtvmho.apps.googleusercontent.com',
+    iosClientId: '1047724374342-bpnftben5e939kkd5cfeie3ghq4se7oq.apps.googleusercontent.com',
     iosBundleId: 'com.example.astute',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAvZh63zh6VyVElwNobGTqJZjAqskr8Wpo',
-    appId: '1:566400543574:ios:c1dfea63c2fd0be759c4f7',
-    messagingSenderId: '566400543574',
-    projectId: 'astute-contracts',
-    storageBucket: 'astute-contracts.firebasestorage.app',
+    apiKey: 'AIzaSyCZvD9ZC3SdcNzhFScz-qTXBYSXgw-Jm3w',
+    appId: '1:1047724374342:ios:890a697ce5414c059d0d47',
+    messagingSenderId: '1047724374342',
+    projectId: 'astute-2025',
+    storageBucket: 'astute-2025.firebasestorage.app',
+    androidClientId: '1047724374342-35sk7gvujkagdh49u7r49qju96dtvmho.apps.googleusercontent.com',
+    iosClientId: '1047724374342-bpnftben5e939kkd5cfeie3ghq4se7oq.apps.googleusercontent.com',
     iosBundleId: 'com.example.astute',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDupT3iY1MazktaW5Tf_ijBENbTNjDXp-Y',
-    appId: '1:566400543574:web:55c7b6fbf5266d4a59c4f7',
-    messagingSenderId: '566400543574',
-    projectId: 'astute-contracts',
-    authDomain: 'astute-contracts.firebaseapp.com',
-    storageBucket: 'astute-contracts.firebasestorage.app',
-    measurementId: 'G-ENC5GQ7T5D',
+    apiKey: 'AIzaSyBldL3_zaOOBaX2WlrUT1JHROKrKdgTOX4',
+    appId: '1:1047724374342:web:71a5a90c8602ba8a9d0d47',
+    messagingSenderId: '1047724374342',
+    projectId: 'astute-2025',
+    authDomain: 'astute-2025.firebaseapp.com',
+    storageBucket: 'astute-2025.firebasestorage.app',
   );
-
 }

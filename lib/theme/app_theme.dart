@@ -113,7 +113,7 @@ class AppTheme {
         borderSide: const BorderSide(color: negativeColor),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: white,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -133,7 +133,7 @@ class AppTheme {
       thickness: 1,
       space: 1,
     ),
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: primaryColor,
       unselectedLabelColor: textSecondary,
       indicatorColor: primaryColor,
@@ -225,7 +225,7 @@ class AppTheme {
         borderSide: const BorderSide(color: negativeColor),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: darkGrey,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -245,7 +245,7 @@ class AppTheme {
       thickness: 1,
       space: 1,
     ),
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       labelColor: primaryColor,
       unselectedLabelColor: grey,
       indicatorColor: primaryColor,

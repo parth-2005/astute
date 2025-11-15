@@ -69,7 +69,7 @@ class _PriceChartState extends State<PriceChart> {
                         }
                         
                         return SideTitleWidget(
-                          meta: meta,
+                          axisSide: meta.axisSide,
                           space: 8.0,
                           child: Text(
                             value.toInt().toString(),
@@ -88,7 +88,7 @@ class _PriceChartState extends State<PriceChart> {
                       interval: 50,
                       getTitlesWidget: (value, meta) {
                         return SideTitleWidget(
-                          meta: meta,
+                          axisSide: meta.axisSide,
                           space: 8.0,
                           child: Text(
                             value.toInt().toString(),
