@@ -32,12 +32,12 @@ class _MarketDetailsScreenState extends State<MarketDetailsScreen> {
     });
   }
 
-  void _navigateToTradeScreen({required bool isYes, required Market market}) {
-    // Initialize controllers with current prices
+  void _navigateToTradeScreen({required bool isYes, required Market market, double? price}) {
+    // Initialize controllers with current prices or passed-in tapped price
     final priceController = TextEditingController(
-      text: isYes 
-        ? (market.yesPrice * 10).toStringAsFixed(2)
-        : (market.noPrice * 10).toStringAsFixed(2)
+      text: price != null
+          ? price.toStringAsFixed(2)
+          : (isYes ? (market.yesPrice * 10).toStringAsFixed(2) : (market.noPrice * 10).toStringAsFixed(2)),
     );
     final quantityController = TextEditingController(
       text: '1',
@@ -540,7 +540,7 @@ Widget _buildCurrentListings(Market market) {
             style: TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
 
-        // Live order book using StreamBuilder
+                        // Live order book using StreamBuilder
         StreamBuilder<List<Order>>(
           stream: firestore.getMarketOrderBook(market.id),
           builder: (context, snapshot) {
@@ -557,53 +557,163 @@ Widget _buildCurrentListings(Market market) {
             }
 
             final orders = snapshot.data!;
-            
+            final yesOrders = orders.where((o) => o.side == OrderSide.yes).toList();
+            final noOrders = orders.where((o) => o.side == OrderSide.no).toList();
+
+            // Aggregate orders by price (normalize to 2 decimals) and sum quantities
+            List<Map<String, double>> aggregateByPrice(List<Order> list) {
+              final Map<double, double> map = {};
+              for (var o in list) {
+                final p = double.parse(o.price.toStringAsFixed(2));
+                map[p] = (map[p] ?? 0) + o.quantity;
+              }
+              final result = map.entries.map((e) => {'price': e.key, 'qty': e.value}).toList();
+              // sort descending by price (highest on top)
+              result.sort((a, b) => (b['price']!).compareTo(a['price']!));
+              return result;
+            }
+
+            final aggYes = aggregateByPrice(yesOrders);
+            final aggNo = aggregateByPrice(noOrders);
+
+            final maxRows = 6;
+            final leftList = aggNo.take(maxRows).toList();
+            final rightList = aggYes.take(maxRows).toList();
+
             return Column(
               children: [
-                // Header
+                // Header row showing NO (left) and YES (right)
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(color: Colors.grey.shade100),
                   child: Row(
                     children: [
-                      Expanded(child: _tableCell('QTY', isHeader: true)),
-                      Expanded(child: _tableCell('PRICE', isHeader: true)),
-                      Expanded(child: _tableCell('SIDE', isHeader: true)),
-                      Expanded(child: _tableCell('USER', isHeader: true)),
+                      // Expanded(
+                      //   child: Column(
+                      //     children: [
+                      //       const Text('NO', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                      //       const SizedBox(height: 4),
+                      //       const Text('QTY', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      //     ],
+                      //   ),
+                      // ),
+                      // Container(width: 1, height: 40, color: Colors.grey.shade200),
+                      // Expanded(
+                      //   child: Column(
+                      //     children: [
+                      //       const Text('YES', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                      //       const SizedBox(height: 4),
+                      //       const Text('QTY', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      //     ],
+                      //   ),
+                      // ),
+                      Expanded(
+                        child: Column(
+                          children: const [
+                            Text('QTY', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 4),
+                            Text('', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: const [
+                            Text('NO', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 4),
+                            Text('PRICE', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: const [
+                            Text('YES', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 4),
+                            Text('PRICE', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: Column(
+                          children: const [
+                            Text('QTY', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 4),
+                            Text('', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                // Order rows
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: orders.length > 10 ? 10 : orders.length, // Show max 10 orders
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    return Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: Colors.grey.shade200),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(child: _tableCell(order.quantity.toString())),
-                          Expanded(child: _tableCell('₹${order.price.toStringAsFixed(2)}')),
-                          Expanded(
-                            child: _tableCell(
-                              order.sideText.toUpperCase(),
-                              color: order.side == OrderSide.yes 
-                                ? AppTheme.positiveColor 
-                                : AppTheme.negativeColor,
+
+                // Lists side-by-side
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // NO column (left)
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: leftList.length,
+                        itemBuilder: (context, i) {
+                          final item = leftList[i];
+                          final price = item['price']!;
+                          final qty = item['qty']!;
+                          return GestureDetector(
+                            onTap: () => _navigateToTradeScreen(isYes: false, market: market, price: price),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                              decoration: BoxDecoration(
+                                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(qty.toStringAsFixed(0), textAlign: TextAlign.left),
+                                  Text('₹${price.toStringAsFixed(2)}', style: TextStyle(color: AppTheme.negativeColor)),
+                                ],
+                              ),
                             ),
-                          ),
-                          Expanded(child: _tableCell('User')),
-                        ],
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+
+                    // Spacer between columns
+                    Container(width: 8),
+
+                    // YES column (right)
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: rightList.length,
+                        itemBuilder: (context, i) {
+                          final item = rightList[i];
+                          final price = item['price']!;
+                          final qty = item['qty']!;
+                          return GestureDetector(
+                            onTap: () => _navigateToTradeScreen(isYes: true, market: market, price: price),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                              decoration: BoxDecoration(
+                                border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('₹${price.toStringAsFixed(2)}', style: TextStyle(color: AppTheme.positiveColor)),
+                                  Text(qty.toStringAsFixed(0), textAlign: TextAlign.right),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             );
@@ -611,7 +721,7 @@ Widget _buildCurrentListings(Market market) {
         ),
         const SizedBox(height: 16),
         const Text(
-          'Total orders shown (max 10). Tap to select price.',
+          'Total orders shown (max 6 per side). Tap to select price.',
           style: TextStyle(fontSize: 12, color: Colors.grey),
         ),
       ],
@@ -642,19 +752,5 @@ Widget _buildCurrentListings(Market market) {
       ],
     );
   }
-
-  Widget _tableCell(String text, {bool isHeader = false, Color? color}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          fontSize: isHeader ? 12 : 14,
-          color: color,
-        ),
-      ),
-    );
-  }
+  
 } 
